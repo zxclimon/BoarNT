@@ -167,6 +167,13 @@ public class EntityTicker {
             bl2 = player.unvalidatedTickEnd.z == 0;
         }
 
+        if (player.nearLowBlock && player.getInputData().contains(PlayerAuthInputData.HORIZONTAL_COLLISION)) {
+            player.horizontalCollision = true;
+            bl = player.unvalidatedTickEnd.x == 0;
+            bl2 = player.unvalidatedTickEnd.z == 0;
+            vec32 = new Vec3(bl ? 0 : vec32.x, vec32.y, bl2 ? 0 : vec32.z);
+        }
+
         // Sneaking hacks, this is not entirely correct but works, not much room to abuse.
         if (oldVec3.x != vec3.x || oldVec3.z != vec3.z) {
             player.velocity = new Vec3(player.unvalidatedTickEnd.x == 0 ? 0 : player.velocity.x, player.velocity.y, player.unvalidatedTickEnd.z == 0 ? 0 : player.velocity.z);

@@ -143,6 +143,7 @@ public class PlayerData {
     public boolean soulSandBelow;
 
     public boolean nearBamboo;
+    public boolean nearLowBlock;
 
     public boolean beingPushByLava;
 

@@ -14,6 +14,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.Fluid;
 import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BedBlock;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.network.GameProtocol;
 
@@ -69,8 +70,14 @@ public class CompensatedWorldImpl extends CompensatedWorld {
             int x = iterator.getX(), y = iterator.getY(), z = iterator.getZ();
             if (this.isChunkLoaded(x, z)) {
                 BoarBlockState state = this.getBlockState(x, y, z, 0);
-                if (state.getState().is(Blocks.BAMBOO) && new Box(x, y, z, x + 1, y + 1, z + 1).intersects(aABB)) {
+                Box blockBox = new Box(x, y, z, x + 1, y + 1, z + 1);
+
+                if (state.getState().is(Blocks.BAMBOO) && blockBox.intersects(aABB)) {
                     getPlayer().nearBamboo = true;
+                }
+
+                if (state.getState().block() instanceof BedBlock && blockBox.intersects(aABB)) {
+                    getPlayer().nearLowBlock = true;
                 }
 
                 builder.addAll(state.findCollision(this.getPlayer(), Vector3i.from(x, y, z), aABB, true));

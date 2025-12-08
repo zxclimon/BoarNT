@@ -136,7 +136,7 @@ public class UncertainRunner {
         boolean recentGliding = player.ticksSinceStoppedGliding > 0 && player.ticksSinceStoppedGliding < 10;
         if (player.getFlagTracker().has(EntityFlag.GLIDING) || startingGlide || recentGliding) {
             extra += 1.0E-4F;
-            if (player.glideBoostTicks > -10 || player.horizontalCollision || player.verticalCollision 
+            if (player.glideBoostTicks > -10 || player.horizontalCollision || player.verticalCollision
                     || player.ticksSinceGliding < 10 || startingGlide || recentGliding) {
                 extra = Math.max(extra, offset);
             }
@@ -175,7 +175,7 @@ public class UncertainRunner {
 
         // scaffolding спуск/подъём
         float actualYDelta = player.unvalidatedPosition.y - player.prevUnvalidatedPosition.y;
-        boolean scaffoldingMovement = Math.abs(player.unvalidatedTickEnd.y - 0.15F) < 0.02F 
+        boolean scaffoldingMovement = Math.abs(player.unvalidatedTickEnd.y - 0.15F) < 0.02F
                 || Math.abs(player.unvalidatedTickEnd.y + 0.15F) < 0.02F
                 || Math.abs(actualYDelta - 0.15F) < 0.02F
                 || Math.abs(actualYDelta + 0.15F) < 0.02F;
@@ -193,8 +193,12 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
-        // быстрые присидание 
+        // быстрые присидание
         if (player.ticksSinceSneakToggle >= 0 && player.ticksSinceSneakToggle < 5) {
+            extra = Math.max(extra, offset);
+        }
+
+        if (player.nearLowBlock && validYOffset) {
             extra = Math.max(extra, offset);
         }
 

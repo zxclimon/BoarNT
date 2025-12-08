@@ -162,6 +162,7 @@ public class BedrockCollision {
         }
 
         if (state.block() instanceof BedBlock) {
+            player.nearLowBlock = true;
             return BED_SHAPE;
         }
 
