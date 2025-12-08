@@ -173,7 +173,7 @@ public class UncertainRunner {
         }
 
         // scaffolding  спуск/подъём
-        if (player.scaffoldDescend) {
+        if (player.scaffoldDescend || (player.ticksSinceScaffolding >= 0 && player.ticksSinceScaffolding < 5)) {
             extra = Math.max(extra, offset);
         }
 

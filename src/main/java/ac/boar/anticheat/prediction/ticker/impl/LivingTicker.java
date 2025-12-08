@@ -116,6 +116,12 @@ public class LivingTicker extends EntityTicker {
             }
         }
 
+        if (inScaffolding || onScaffolding) {
+            player.ticksSinceScaffolding = 0;
+        } else if (player.ticksSinceScaffolding < 100) {
+            player.ticksSinceScaffolding++;
+        }
+
         if (player.getFlagTracker().has(EntityFlag.GLIDING) && (player.onGround || player.vehicleData != null || player.hasEffect(Effect.LEVITATION))) {
             player.getFlagTracker().set(EntityFlag.GLIDING, false);
         }
