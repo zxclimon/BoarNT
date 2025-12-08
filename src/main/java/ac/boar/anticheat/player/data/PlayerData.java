@@ -144,6 +144,7 @@ public class PlayerData {
 
     public boolean nearBamboo;
     public boolean nearLowBlock;
+    public boolean nearThinBlock;
 
     public boolean beingPushByLava;
 

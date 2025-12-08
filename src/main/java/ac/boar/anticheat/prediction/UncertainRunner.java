@@ -201,6 +201,10 @@ public class UncertainRunner {
         if (player.nearLowBlock && validYOffset) {
             extra = Math.max(extra, offset);
         }
+        // Фикс для дверей
+        if (player.nearThinBlock && validYOffset) {
+            extra = Math.max(extra, offset);
+        }
 
         return extra;
     }

@@ -16,6 +16,7 @@ import org.geysermc.geyser.level.block.Fluid;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BedBlock;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.DoorBlock;
 import org.geysermc.geyser.network.GameProtocol;
 
 import java.util.ArrayList;
@@ -78,6 +79,10 @@ public class CompensatedWorldImpl extends CompensatedWorld {
 
                 if (state.getState().block() instanceof BedBlock && blockBox.intersects(aABB)) {
                     getPlayer().nearLowBlock = true;
+                }
+
+                if (state.getState().block() instanceof DoorBlock && blockBox.intersects(aABB)) {
+                    getPlayer().nearThinBlock = true;
                 }
 
                 builder.addAll(state.findCollision(this.getPlayer(), Vector3i.from(x, y, z), aABB, true));

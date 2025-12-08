@@ -247,6 +247,8 @@ public class BedrockCollision {
         }
 
         if (state.block() instanceof DoorBlock) {
+            player.nearThinBlock = true;
+
             Direction direction = state.getValue(Properties.HORIZONTAL_FACING);
             boolean bl = !state.getValue(Properties.OPEN);
             boolean bl2 = state.getValue(Properties.DOOR_HINGE).equalsIgnoreCase("right");
