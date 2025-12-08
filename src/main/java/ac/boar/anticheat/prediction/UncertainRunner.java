@@ -5,8 +5,10 @@ import ac.boar.anticheat.player.BoarPlayer;
 import ac.boar.anticheat.util.MathUtil;
 import ac.boar.anticheat.util.math.Box;
 import ac.boar.anticheat.util.math.Vec3;
+import ac.boar.mappings.BlockMappings;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
@@ -174,6 +176,12 @@ public class UncertainRunner {
 
         // scaffolding  спуск/подъём
         if (player.scaffoldDescend || (player.ticksSinceScaffolding >= 0 && player.ticksSinceScaffolding < 5)) {
+            extra = Math.max(extra, offset);
+        }
+
+        // shulker box  анимация открытие толкает игрока
+        Vector3i below = player.position.subtract(0, 1, 0).toVector3i();
+        if (BlockMappings.getShulkerBlocks().contains(player.compensatedWorld.getBlockState(below, 0).getState().block())) {
             extra = Math.max(extra, offset);
         }
 
