@@ -187,7 +187,7 @@ public class UncertainRunner {
         }
 
         // shulker box  анимация открытие толкает игрока
-        if (player.ticksSinceShulker >= 0 && player.ticksSinceShulker < 5 && actualYSmallerOrEqual) {
+        if (player.ticksSinceShulker >= 0 && player.ticksSinceShulker < 10 && Math.abs(actualYDelta) <= 0.5F) {
             extra = Math.max(extra, offset);
         }
 
