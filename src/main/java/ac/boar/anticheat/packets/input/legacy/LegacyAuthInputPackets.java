@@ -17,6 +17,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.Iterator;
@@ -32,6 +33,12 @@ public class LegacyAuthInputPackets {
     public static void doPostPrediction(final BoarPlayer player, final PlayerAuthInputPacket packet) {
         player.postTick();
         player.getTeleportUtil().cachePosition(player.tick, player.position.add(0, player.getYOffset(), 0).toVector3f());
+
+        if (player.getInBlockState() != null && player.getInBlockState().is(Blocks.POWDER_SNOW)) {
+            player.ticksSincePowderSnow = 0;
+        } else {
+            player.ticksSincePowderSnow++;
+        }
 
         final UncertainRunner uncertainRunner = new UncertainRunner(player);
 

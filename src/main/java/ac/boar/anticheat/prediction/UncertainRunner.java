@@ -166,6 +166,12 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
+        // рыхлый снег когда игрок проваливается под него
+        // 10 тиков для того чтобы когда игрок проваливается одевая ботинки поднялся спокойно по рыхлому снегу
+        if (player.ticksSincePowderSnow >= 0 && player.ticksSincePowderSnow < 10) {
+            extra = Math.max(extra, offset);
+        }
+
         return extra;
     }
 }
