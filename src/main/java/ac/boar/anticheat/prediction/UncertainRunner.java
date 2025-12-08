@@ -143,18 +143,23 @@ public class UncertainRunner {
         }
 // плавании  учитывает выход из воды, переходы в плавание из true в false
 // в этом случаях скорость по оси Y различается из-за  переходов между водой и воздухом
-        boolean waterTransition = (player.ticksSinceWaterExit >= 0 && player.ticksSinceWaterExit < 10)
-                || (player.wasInWaterBeforePrediction && !player.touchingWater)
-                || (!player.wasInWaterBeforePrediction && player.touchingWater)
-                || (player.ticksSinceStoppedSwimming > 0 && player.ticksSinceStoppedSwimming < 10)
-                || (player.touchingWater && player.pitch < 0);
+        boolean waterExit = player.wasInWaterBeforePrediction && !player.touchingWater;
+        boolean waterEntry = !player.wasInWaterBeforePrediction && player.touchingWater;
+        boolean swimmingUp = player.touchingWater && player.pitch < 0;
 
-        if (waterTransition) {
+        // переходы воды/воздух
+        if ((waterExit || waterEntry || swimmingUp) && validYOffset && actualSpeedSmallerThanPredicted) {
             extra = Math.max(extra, offset);
         }
-        boolean itemUseTransition = (player.ticksSinceItemUse >= 0 && player.ticksSinceItemUse < 3);
 
-        if (itemUseTransition && validYOffset && actualSpeedSmallerThanPredicted) {
+        // Недавний выход из воды/плавания  небольшой tolerance для Y погрешностей
+        boolean recentWaterExit = player.ticksSinceWaterExit >= 0 && player.ticksSinceWaterExit < 5;
+        boolean recentSwimmingStop = player.ticksSinceStoppedSwimming > 0 && player.ticksSinceStoppedSwimming < 5;
+        if ((recentWaterExit || recentSwimmingStop) && validYOffset && actualSpeedSmallerThanPredicted) {
+            extra = Math.max(extra, offset);
+        }
+        boolean usingItem = player.getFlagTracker().has(EntityFlag.USING_ITEM);
+        if (usingItem && validYOffset && actualSpeedSmallerThanPredicted) {
             extra = Math.max(extra, offset);
         }
 
@@ -187,7 +192,7 @@ public class UncertainRunner {
         }
 
         // shulker box  анимация открытие толкает игрока
-        if (player.ticksSinceShulker >= 0 && player.ticksSinceShulker < 10 && Math.abs(actualYDelta) <= 0.5F) {
+        if (player.nearShulker && Math.abs(actualYDelta) <= 0.5F) {
             extra = Math.max(extra, offset);
         }
 
