@@ -36,9 +36,14 @@ public class LegacyAuthInputPackets {
         player.postTick();
         player.getTeleportUtil().cachePosition(player.tick, player.position.add(0, player.getYOffset(), 0).toVector3f());
 
-        boolean inPowderSnow = (player.getInBlockState() != null && player.getInBlockState().is(Blocks.POWDER_SNOW))
-                || player.compensatedWorld.getBlockState(player.position.subtract(0, 0.5F, 0).toVector3i(), 0).getState().is(Blocks.POWDER_SNOW);
-        if (inPowderSnow) {
+        Vector3i pos = player.position.toVector3i();
+        boolean nearPowderSnow = (player.getInBlockState() != null && player.getInBlockState().is(Blocks.POWDER_SNOW))
+                || player.compensatedWorld.getBlockState(pos.sub(0, 1, 0), 0).getState().is(Blocks.POWDER_SNOW)
+                || player.compensatedWorld.getBlockState(pos.add(1, 0, 0), 0).getState().is(Blocks.POWDER_SNOW)
+                || player.compensatedWorld.getBlockState(pos.add(-1, 0, 0), 0).getState().is(Blocks.POWDER_SNOW)
+                || player.compensatedWorld.getBlockState(pos.add(0, 0, 1), 0).getState().is(Blocks.POWDER_SNOW)
+                || player.compensatedWorld.getBlockState(pos.add(0, 0, -1), 0).getState().is(Blocks.POWDER_SNOW);
+        if (nearPowderSnow) {
             player.ticksSincePowderSnow = 0;
         } else if (player.ticksSincePowderSnow < 100) {
             player.ticksSincePowderSnow++;
