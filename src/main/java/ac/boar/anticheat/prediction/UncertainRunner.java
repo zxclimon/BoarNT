@@ -7,6 +7,7 @@ import ac.boar.anticheat.util.math.Box;
 import ac.boar.anticheat.util.math.Vec3;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 
@@ -130,10 +131,13 @@ public class UncertainRunner {
             }
         }
 
-        if (player.getFlagTracker().has(EntityFlag.GLIDING)) {
+        // Увы, детектит за обычный полёт на элитрах  буст от фейрверков + коллизия  при gliding
+        boolean startingGlide = player.getInputData().contains(PlayerAuthInputData.START_GLIDING);
+        boolean recentGliding = player.ticksSinceStoppedGliding > 0 && player.ticksSinceStoppedGliding < 10;
+        if (player.getFlagTracker().has(EntityFlag.GLIDING) || startingGlide || recentGliding) {
             extra += 1.0E-4F;
-            // Увы, детектит за обычный полёт на элитрах  буст от фейрверков
-            if (player.glideBoostTicks > -10) {
+            if (player.glideBoostTicks > -10 || player.horizontalCollision || player.verticalCollision 
+                    || player.ticksSinceGliding < 10 || startingGlide || recentGliding) {
                 extra = Math.max(extra, offset);
             }
         }
@@ -141,14 +145,12 @@ public class UncertainRunner {
 // в этом случаях скорость по оси Y различается из-за  переходов между водой и воздухом
         boolean waterTransition = (player.ticksSinceWaterExit >= 0 && player.ticksSinceWaterExit < 10)
                 || (player.wasInWaterBeforePrediction && !player.touchingWater)
-                || (player.touchingWater && player.ticksSinceStoppedSwimming > 0 && player.ticksSinceStoppedSwimming < 10)
+                || (!player.wasInWaterBeforePrediction && player.touchingWater)
+                || (player.ticksSinceStoppedSwimming > 0 && player.ticksSinceStoppedSwimming < 10)
                 || (player.touchingWater && player.pitch < 0);
 
         if (waterTransition) {
-            float yDiff = Math.abs(player.position.y - player.unvalidatedPosition.y);
-            if (yDiff > player.getMaxOffset() && yDiff < 0.5F) {
-                extra = Math.max(extra, yDiff);
-            }
+            extra = Math.max(extra, offset);
         }
         // при использовании предмета игрок может едя на бегу, бег+прыжок вызывая погрешность в вычеслиниях
         // проблема в том, что на тике когда игрок перестаёт использовать предмет
@@ -156,6 +158,11 @@ public class UncertainRunner {
                 || (!player.getFlagTracker().has(EntityFlag.USING_ITEM) && player.getItemUseTracker().getJavaItemId() != -1);
 
         if (itemUseTransition) {
+            extra = Math.max(extra, offset);
+        }
+
+        // после получения velocity
+        if (player.ticksSinceVelocity >= 0 && player.ticksSinceVelocity < 5) {
             extra = Math.max(extra, offset);
         }
 

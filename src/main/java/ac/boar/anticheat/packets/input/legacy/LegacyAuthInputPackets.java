@@ -61,6 +61,7 @@ public class LegacyAuthInputPackets {
 
         // Also clear out old velocity.
         if (player.bestPossibility.getType() == VectorType.VELOCITY) {
+            player.ticksSinceVelocity = 0;
             Iterator<Map.Entry<Long, VelocityData>> iterator = player.queuedVelocities.entrySet().iterator();
 
             Map.Entry<Long, VelocityData> entry;
@@ -71,6 +72,8 @@ public class LegacyAuthInputPackets {
                     iterator.remove();
                 }
             }
+        } else {
+            player.ticksSinceVelocity++;
         }
 
         player.prevPosition = player.position;
@@ -247,5 +250,17 @@ public class LegacyAuthInputPackets {
             player.getItemUseTracker().setDirtyUsing(ItemUseTracker.DirtyUsing.NONE);
         }
         player.dirtySpinStop = false;
+
+        if (player.getFlagTracker().has(EntityFlag.GLIDING)) {
+            player.ticksSinceGliding++;
+            player.ticksSinceStoppedGliding = 0;
+        } else {
+            if (player.ticksSinceGliding > 0) {
+                player.ticksSinceStoppedGliding = 1;
+            } else {
+                player.ticksSinceStoppedGliding++;
+            }
+            player.ticksSinceGliding = 0;
+        }
     }
 }
