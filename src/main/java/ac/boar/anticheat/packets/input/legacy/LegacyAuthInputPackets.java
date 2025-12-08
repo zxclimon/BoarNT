@@ -34,9 +34,11 @@ public class LegacyAuthInputPackets {
         player.postTick();
         player.getTeleportUtil().cachePosition(player.tick, player.position.add(0, player.getYOffset(), 0).toVector3f());
 
-        if (player.getInBlockState() != null && player.getInBlockState().is(Blocks.POWDER_SNOW)) {
+        boolean inPowderSnow = (player.getInBlockState() != null && player.getInBlockState().is(Blocks.POWDER_SNOW))
+                || player.compensatedWorld.getBlockState(player.position.subtract(0, 0.5F, 0).toVector3i(), 0).getState().is(Blocks.POWDER_SNOW);
+        if (inPowderSnow) {
             player.ticksSincePowderSnow = 0;
-        } else {
+        } else if (player.ticksSincePowderSnow < 100) {
             player.ticksSincePowderSnow++;
         }
 
