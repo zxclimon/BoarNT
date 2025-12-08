@@ -170,49 +170,34 @@ public class LegacyAuthInputPackets {
     }
 
     public static void processInputData(final BoarPlayer player) {
+        boolean usingItem = player.getFlagTracker().has(EntityFlag.USING_ITEM);
         boolean wasUsingItem = player.ticksSinceItemUse == -1;
-        if (!player.getFlagTracker().has(EntityFlag.USING_ITEM)) {
-            player.sinceTridentUse = 0;
-            if (wasUsingItem) {
-                player.ticksSinceItemUse = 0;
-            } else if (player.ticksSinceItemUse >= 0) {
-                player.ticksSinceItemUse++;
-            }
-            // Отслеживаем тики после начала использования предмета
-            if (player.ticksSinceStartedItemUse < 100) {
-                player.ticksSinceStartedItemUse++;
-            }
-        } else {
-            // Игрок начал использовать предмет
-            if (!wasUsingItem) {
-                player.ticksSinceStartedItemUse = 0;
-            } else if (player.ticksSinceStartedItemUse < 100) {
-                player.ticksSinceStartedItemUse++;
-            }
+
+        // отслеживание предметов
+        if (usingItem) {
             player.ticksSinceItemUse = -1;
+            player.ticksSinceStartedItemUse = wasUsingItem ? Math.min(player.ticksSinceStartedItemUse + 1, 100) : 0;
+        } else {
+            player.sinceTridentUse = 0;
+            player.ticksSinceItemUse = wasUsingItem ? 0 : Math.min(player.ticksSinceItemUse + 1, 100);
+            player.ticksSinceStartedItemUse = Math.min(player.ticksSinceStartedItemUse + 1, 100);
         }
 
-        if (player.getFlagTracker().has(EntityFlag.SWIMMING)) {
+        // отслеживание плаванья
+        boolean swimming = player.getFlagTracker().has(EntityFlag.SWIMMING);
+        if (swimming) {
             player.ticksSinceSwimming++;
             player.ticksSinceStoppedSwimming = 0;
         } else {
-            if (player.ticksSinceSwimming > 0) {
-                player.ticksSinceStoppedSwimming = 1;
-            } else {
-                player.ticksSinceStoppedSwimming++;
-            }
+            player.ticksSinceStoppedSwimming = player.ticksSinceSwimming > 0 ? 1 : player.ticksSinceStoppedSwimming + 1;
             player.ticksSinceSwimming = 0;
         }
 
-        if (player.getFlagTracker().has(EntityFlag.CRAWLING)) {
-            player.ticksSinceCrawling++;
-        } else {
-            player.ticksSinceCrawling = 0;
-        }
+        // отслеживания ползонья
+        player.ticksSinceCrawling = player.getFlagTracker().has(EntityFlag.CRAWLING) ? player.ticksSinceCrawling + 1 : 0;
 
-        if (player.ticksSinceSneakToggle < 100) {
-            player.ticksSinceSneakToggle++;
-        }
+        // отслеживания быстрого отжатия shift
+        player.ticksSinceSneakToggle = Math.min(player.ticksSinceSneakToggle + 1, 100);
 
         final Iterator<PlayerAuthInputData> iterator = player.getInputData().iterator();
         while (iterator.hasNext()) {
