@@ -154,7 +154,9 @@ public class UncertainRunner {
         }
         // при использовании предмета игрок может едя на бегу, бег+прыжок вызывая погрешность в вычеслиниях
         // проблема в том, что на тике когда игрок перестаёт использовать предмет или начинает
+        // ticksSinceStartedItemUse - отслеживает переход в режим использования
         boolean itemUseTransition = (player.ticksSinceItemUse >= 0 && player.ticksSinceItemUse < 10)
+                || (player.ticksSinceStartedItemUse >= 0 && player.ticksSinceStartedItemUse < 10)
                 || player.getFlagTracker().has(EntityFlag.USING_ITEM)
                 || player.getItemUseTracker().getJavaItemId() != -1;
 
@@ -201,8 +203,12 @@ public class UncertainRunner {
         if (player.nearLowBlock && validYOffset) {
             extra = Math.max(extra, offset);
         }
-        // Фикс для дверей
+
         if (player.nearThinBlock && validYOffset) {
+            extra = Math.max(extra, offset);
+        }
+
+        if (player.horizontalCollision && player.velocity.y > 0) {
             extra = Math.max(extra, offset);
         }
 

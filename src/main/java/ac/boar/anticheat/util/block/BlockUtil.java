@@ -159,7 +159,12 @@ public class BlockUtil {
 
     private static boolean attachsTo(BlockState blockState, boolean bl) {
         boolean walls = BlockMappings.getWallBlocks().contains(blockState.block());
-        return !isExceptionForConnection(blockState) && bl || blockState.is(Blocks.IRON_BARS) || blockState.toString().toLowerCase(Locale.ROOT).contains("glass_pane") || walls;
+        return !isExceptionForConnection(blockState) && bl || isBarsOrPane(blockState) || walls;
+    }
+
+    private static boolean isBarsOrPane(BlockState state) {
+        String blockName = state.block().javaIdentifier().value().toLowerCase(Locale.ROOT);
+        return blockName.contains("_bars") || blockName.contains("glass_pane");
     }
 
     private static boolean isSameFence(BlockState blockState, BlockState currentBlockState) {

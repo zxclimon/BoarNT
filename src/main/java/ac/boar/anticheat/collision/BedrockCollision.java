@@ -18,6 +18,7 @@ import org.geysermc.geyser.util.BlockUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 // Patch collision in bedrock that is different from java, or block with dynamic collision (ex: scaffolding)
 public class BedrockCollision {
@@ -65,6 +66,10 @@ public class BedrockCollision {
     private final static List<Box> FALLING_POWDER_SNOW_SNOW = List.of(new Box(0.0F, 0.0F, 0.0F, 0.0625F, 0.05625F, 0.0625F));
 
     private final static List<Box> END_PORTAL_FRAME_SHAPE = List.of(new Box(0, 0, 0, 1, 0.8125F, 1));
+
+    private final static float PANE_THICKNESS = 0.1875F; // 3/16
+    private final static float PANE_MIN = 0.5F - PANE_THICKNESS / 2;
+    private final static float PANE_MAX = 0.5F + PANE_THICKNESS / 2;
 
     static {
         // Scaffolding
@@ -131,6 +136,11 @@ public class BedrockCollision {
 
         if (state.is(Blocks.END_PORTAL_FRAME)) {
             return END_PORTAL_FRAME_SHAPE;
+        }
+
+        if (isBarsOrPane(state)) {
+            player.nearThinBlock = true;
+            return getIronBarsCollision(state);
         }
 
         if (state.is(Blocks.POWDER_SNOW)) {
@@ -279,5 +289,37 @@ public class BedrockCollision {
         }
 
         return null;
+    }
+// Фикс железный решёток и стеклянных панелей
+    private static boolean isBarsOrPane(BlockState state) {
+        String blockName = state.block().javaIdentifier().value().toLowerCase(Locale.ROOT);
+        return blockName.contains("_bars") || blockName.contains("glass_pane");
+    }
+
+    private static List<Box> getIronBarsCollision(BlockState state) {
+        List<Box> boxes = new ArrayList<>();
+        boolean north = state.getValue(Properties.NORTH);
+        boolean south = state.getValue(Properties.SOUTH);
+        boolean west = state.getValue(Properties.WEST);
+        boolean east = state.getValue(Properties.EAST);
+        if (!north && !south && !west && !east) {
+            north = south = west = east = true;
+        }
+
+        boxes.add(new Box(PANE_MIN, 0, PANE_MIN, PANE_MAX, 1, PANE_MAX));
+        if (north) {
+            boxes.add(new Box(PANE_MIN, 0, 0, PANE_MAX, 1, PANE_MIN));
+        }
+        if (south) {
+            boxes.add(new Box(PANE_MIN, 0, PANE_MAX, PANE_MAX, 1, 1));
+        }
+        if (west) {
+            boxes.add(new Box(0, 0, PANE_MIN, PANE_MIN, 1, PANE_MAX));
+        }
+        if (east) {
+            boxes.add(new Box(PANE_MAX, 0, PANE_MIN, 1, 1, PANE_MAX));
+        }
+
+        return boxes;
     }
 }

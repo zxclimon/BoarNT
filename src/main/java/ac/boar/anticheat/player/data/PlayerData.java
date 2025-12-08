@@ -77,7 +77,7 @@ public class PlayerData {
 
     public int glideBoostTicks;
     public int ticksSinceSwimming, ticksSinceCrawling, ticksSinceGliding, ticksSincePowderSnow = 100, ticksSinceScaffolding = 100, ticksSinceShulker = 100, ticksSinceHoneyBlock = 100, ticksSinceSneakToggle = 100;
-    public int ticksSinceStoppedSwimming, ticksSinceStoppedGliding, ticksSinceItemUse, ticksSinceVelocity;
+    public int ticksSinceStoppedSwimming, ticksSinceStoppedGliding, ticksSinceItemUse, ticksSinceStartedItemUse = 100, ticksSinceVelocity;
 
     public boolean doingInventoryAction;
     public AtomicLong desyncedFlag = new AtomicLong(-1);

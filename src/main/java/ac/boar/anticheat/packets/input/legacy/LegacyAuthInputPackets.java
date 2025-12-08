@@ -178,7 +178,17 @@ public class LegacyAuthInputPackets {
             } else if (player.ticksSinceItemUse >= 0) {
                 player.ticksSinceItemUse++;
             }
+            // Отслеживаем тики после начала использования предмета
+            if (player.ticksSinceStartedItemUse < 100) {
+                player.ticksSinceStartedItemUse++;
+            }
         } else {
+            // Игрок начал использовать предмет
+            if (!wasUsingItem) {
+                player.ticksSinceStartedItemUse = 0;
+            } else if (player.ticksSinceStartedItemUse < 100) {
+                player.ticksSinceStartedItemUse++;
+            }
             player.ticksSinceItemUse = -1;
         }
 

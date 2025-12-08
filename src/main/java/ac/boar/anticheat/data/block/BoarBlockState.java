@@ -124,7 +124,7 @@ public class BoarBlockState {
 
         if (BlockMappings.getFenceBlocks().contains(state.block())) {
             state = BlockUtil.findFenceBlockState(player, getState(), pos);
-        } else if (state.is(Blocks.IRON_BARS) || state.toString().toLowerCase(Locale.ROOT).contains("glass_pane")) {
+        } else if (isBarsOrPane(state)) {
             state = BlockUtil.findIronBarsBlockState(player, getState(), pos);
         } else if (state.is(Blocks.CHEST) || state.is(Blocks.TRAPPED_CHEST)) {
             state = BlockUtil.findChestState(player, state, pos);
@@ -174,5 +174,9 @@ public class BoarBlockState {
         }
 
         return 0.6F;
+    }
+    public static boolean isBarsOrPane(BlockState state) {
+        String blockName = state.block().javaIdentifier().value().toLowerCase(Locale.ROOT);
+        return blockName.contains("_bars") || blockName.contains("glass_pane");
     }
 }
