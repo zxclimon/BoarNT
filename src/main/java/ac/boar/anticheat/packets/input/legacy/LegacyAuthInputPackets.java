@@ -11,6 +11,8 @@ import ac.boar.anticheat.prediction.engine.data.VectorType;
 import ac.boar.anticheat.util.InputUtil;
 
 import ac.boar.anticheat.util.math.Vec3;
+import ac.boar.mappings.BlockMappings;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.Ability;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -34,12 +36,24 @@ public class LegacyAuthInputPackets {
         player.postTick();
         player.getTeleportUtil().cachePosition(player.tick, player.position.add(0, player.getYOffset(), 0).toVector3f());
 
-        boolean inPowderSnow = (player.getInBlockState() != null && player.getInBlockState().is(Blocks.POWDER_SNOW)) // дэм случайно написал Fix Upgrade №5 идём на №6
+        boolean inPowderSnow = (player.getInBlockState() != null && player.getInBlockState().is(Blocks.POWDER_SNOW))
                 || player.compensatedWorld.getBlockState(player.position.subtract(0, 0.5F, 0).toVector3i(), 0).getState().is(Blocks.POWDER_SNOW);
         if (inPowderSnow) {
             player.ticksSincePowderSnow = 0;
         } else if (player.ticksSincePowderSnow < 100) {
             player.ticksSincePowderSnow++;
+        }
+
+        Vector3i below = player.position.subtract(0, 1, 0).toVector3i();
+        boolean nearShulker = BlockMappings.getShulkerBlocks().contains(player.compensatedWorld.getBlockState(below, 0).getState().block())
+                || BlockMappings.getShulkerBlocks().contains(player.compensatedWorld.getBlockState(below.add(1, 0, 0), 0).getState().block())
+                || BlockMappings.getShulkerBlocks().contains(player.compensatedWorld.getBlockState(below.add(-1, 0, 0), 0).getState().block())
+                || BlockMappings.getShulkerBlocks().contains(player.compensatedWorld.getBlockState(below.add(0, 0, 1), 0).getState().block())
+                || BlockMappings.getShulkerBlocks().contains(player.compensatedWorld.getBlockState(below.add(0, 0, -1), 0).getState().block());
+        if (nearShulker) {
+            player.ticksSinceShulker = 0;
+        } else if (player.ticksSinceShulker < 100) {
+            player.ticksSinceShulker++;
         }
 
         final UncertainRunner uncertainRunner = new UncertainRunner(player);
