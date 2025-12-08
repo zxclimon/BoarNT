@@ -77,7 +77,7 @@ public class PlayerData {
 
     public int glideBoostTicks;
     public int ticksSinceSwimming, ticksSinceCrawling;
-    public int ticksSinceStoppedSwimming;
+    public int ticksSinceStoppedSwimming, ticksSinceItemUse;
 
     public boolean doingInventoryAction;
     public AtomicLong desyncedFlag = new AtomicLong(-1);

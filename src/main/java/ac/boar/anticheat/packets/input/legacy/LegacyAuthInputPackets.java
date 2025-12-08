@@ -127,8 +127,16 @@ public class LegacyAuthInputPackets {
     }
 
     public static void processInputData(final BoarPlayer player) {
+        boolean wasUsingItem = player.ticksSinceItemUse == -1;
         if (!player.getFlagTracker().has(EntityFlag.USING_ITEM)) {
             player.sinceTridentUse = 0;
+            if (wasUsingItem) {
+                player.ticksSinceItemUse = 0;
+            } else if (player.ticksSinceItemUse >= 0) {
+                player.ticksSinceItemUse++;
+            }
+        } else {
+            player.ticksSinceItemUse = -1;
         }
 
         if (player.getFlagTracker().has(EntityFlag.SWIMMING)) {

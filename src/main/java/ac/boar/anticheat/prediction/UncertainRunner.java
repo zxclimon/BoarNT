@@ -150,6 +150,14 @@ public class UncertainRunner {
                 extra = Math.max(extra, yDiff);
             }
         }
+        // при использовании предмета игрок может едя на бегу, бег+прыжок вызывая погрешность в вычеслиниях
+        // проблема в том, что на тике когда игрок перестаёт использовать предмет
+        boolean itemUseTransition = (player.ticksSinceItemUse >= 0 && player.ticksSinceItemUse < 10)
+                || (!player.getFlagTracker().has(EntityFlag.USING_ITEM) && player.getItemUseTracker().getJavaItemId() != -1);
+
+        if (itemUseTransition) {
+            extra = Math.max(extra, offset);
+        }
 
         return extra;
     }
