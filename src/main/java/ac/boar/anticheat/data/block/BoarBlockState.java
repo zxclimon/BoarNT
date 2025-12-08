@@ -176,7 +176,7 @@ public class BoarBlockState {
         return 0.6F;
     }
     public static boolean isBarsOrPane(BlockState state) {
-        String blockName = state.block().javaIdentifier().value().toLowerCase(Locale.ROOT);
-        return blockName.contains("_bars") || blockName.contains("glass_pane");
+        String blockStr = state.block().toString().toLowerCase(Locale.ROOT);
+        return blockStr.contains("_bars") || blockStr.contains("glass_pane");
     }
 }
