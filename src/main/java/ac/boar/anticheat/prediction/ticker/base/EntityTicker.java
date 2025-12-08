@@ -49,12 +49,15 @@ public class EntityTicker {
     }
 
     void checkWaterState() {
-//        if (this.getVehicle() instanceof AbstractBoatEntity lv && !lv.isSubmergedInWater()) {
-//            this.touchingWater = false;
-//            return;
-//        }
-
+        boolean wasInWater = player.touchingWater;
         player.touchingWater = this.updateFluidHeightAndDoFluidPushing(0.014F, Fluid.WATER);
+        if (wasInWater && !player.touchingWater) {
+            player.ticksSinceWaterExit = 0;
+        } else if (!player.touchingWater) {
+            player.ticksSinceWaterExit++;
+        } else {
+            player.ticksSinceWaterExit = -1;
+        }
     }
 
     private boolean updateFluidHeightAndDoFluidPushing(final float speed, final Fluid tag) {

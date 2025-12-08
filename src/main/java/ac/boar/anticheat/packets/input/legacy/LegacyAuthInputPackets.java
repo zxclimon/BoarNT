@@ -133,7 +133,13 @@ public class LegacyAuthInputPackets {
 
         if (player.getFlagTracker().has(EntityFlag.SWIMMING)) {
             player.ticksSinceSwimming++;
+            player.ticksSinceStoppedSwimming = 0;
         } else {
+            if (player.ticksSinceSwimming > 0) {
+                player.ticksSinceStoppedSwimming = 1;
+            } else {
+                player.ticksSinceStoppedSwimming++;
+            }
             player.ticksSinceSwimming = 0;
         }
 

@@ -77,6 +77,7 @@ public class PlayerData {
 
     public int glideBoostTicks;
     public int ticksSinceSwimming, ticksSinceCrawling;
+    public int ticksSinceStoppedSwimming;
 
     public boolean doingInventoryAction;
     public AtomicLong desyncedFlag = new AtomicLong(-1);
@@ -136,7 +137,8 @@ public class PlayerData {
     public float fallDistance = 0;
 
     public boolean hasDepthStrider;
-    public boolean touchingWater;
+    public boolean touchingWater, wasInWaterBeforePrediction;
+    public int ticksSinceWaterExit;
     public boolean horizontalCollision, verticalCollision;
     public boolean soulSandBelow;
 

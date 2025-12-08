@@ -137,6 +137,19 @@ public class UncertainRunner {
                 extra = offset;
             }
         }
+// плавании  учитывает выход из воды, переходы в плавание из true в false
+// в этом случаях скорость по оси Y различается из-за  переходов между водой и воздухом
+        boolean waterTransition = (player.ticksSinceWaterExit >= 0 && player.ticksSinceWaterExit < 10)
+                || (player.wasInWaterBeforePrediction && !player.touchingWater)
+                || (player.touchingWater && player.ticksSinceStoppedSwimming > 0 && player.ticksSinceStoppedSwimming < 10)
+                || (player.touchingWater && player.pitch < 0);
+
+        if (waterTransition) {
+            float yDiff = Math.abs(player.position.y - player.unvalidatedPosition.y);
+            if (yDiff > player.getMaxOffset() && yDiff < 0.5F) {
+                extra = Math.max(extra, yDiff);
+            }
+        }
 
         return extra;
     }
