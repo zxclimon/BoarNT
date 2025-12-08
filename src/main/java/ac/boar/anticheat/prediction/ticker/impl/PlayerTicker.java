@@ -20,7 +20,9 @@ public class PlayerTicker extends LivingTicker {
             player.input = player.input.multiply(0.3F);
         }
 
-        if (player.getFlagTracker().has(EntityFlag.USING_ITEM) || player.getItemUseTracker().getJavaItemId() != -1) {
+        // я случайно накосячил и сделал всё не так извините простите
+        boolean usingItem = player.getFlagTracker().has(EntityFlag.USING_ITEM);
+        if (usingItem) {
             player.input = player.input.multiply(0.122499995F);
         }
     }
