@@ -193,6 +193,11 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
+        // быстрые присидание 
+        if (player.ticksSinceSneakToggle >= 0 && player.ticksSinceSneakToggle < 5) {
+            extra = Math.max(extra, offset);
+        }
+
         return extra;
     }
 }

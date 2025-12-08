@@ -200,6 +200,10 @@ public class LegacyAuthInputPackets {
             player.ticksSinceCrawling = 0;
         }
 
+        if (player.ticksSinceSneakToggle < 100) {
+            player.ticksSinceSneakToggle++;
+        }
+
         final Iterator<PlayerAuthInputData> iterator = player.getInputData().iterator();
         while (iterator.hasNext()) {
             final PlayerAuthInputData input = iterator.next();
@@ -227,8 +231,14 @@ public class LegacyAuthInputPackets {
                     }
                 }
                 case STOP_SPRINTING -> player.setSprinting(false);
-                case START_SNEAKING -> player.getFlagTracker().set(EntityFlag.SNEAKING, true);
-                case STOP_SNEAKING -> player.getFlagTracker().set(EntityFlag.SNEAKING, false);
+                case START_SNEAKING -> {
+                    player.getFlagTracker().set(EntityFlag.SNEAKING, true);
+                    player.ticksSinceSneakToggle = 0;
+                }
+                case STOP_SNEAKING -> {
+                    player.getFlagTracker().set(EntityFlag.SNEAKING, false);
+                    player.ticksSinceSneakToggle = 0;
+                }
 
                 case START_SWIMMING -> player.getFlagTracker().set(EntityFlag.SWIMMING, true);
                 case STOP_SWIMMING -> player.getFlagTracker().set(EntityFlag.SWIMMING, false);
