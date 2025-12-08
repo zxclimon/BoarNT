@@ -168,14 +168,21 @@ public class UncertainRunner {
         if (player.ticksSincePowderSnow >= 0 && player.ticksSincePowderSnow < 10) {
             extra = Math.max(extra, offset);
         }
-
         // scaffolding спуск/подъём
         float actualYDelta = player.unvalidatedPosition.y - player.prevUnvalidatedPosition.y;
+        float predictedYDelta = player.position.y - player.prevUnvalidatedPosition.y;
+        boolean actualYSmallerOrEqual = actualYDelta <= predictedYDelta + 0.01F;
+
         boolean scaffoldingMovement = Math.abs(player.unvalidatedTickEnd.y - 0.15F) < 0.02F
                 || Math.abs(player.unvalidatedTickEnd.y + 0.15F) < 0.02F
                 || Math.abs(actualYDelta - 0.15F) < 0.02F
                 || Math.abs(actualYDelta + 0.15F) < 0.02F;
-        if (player.scaffoldDescend || scaffoldingMovement || (player.ticksSinceScaffolding >= 0 && player.ticksSinceScaffolding < 10)) {
+
+        if ((player.scaffoldDescend || scaffoldingMovement) && actualYSmallerOrEqual) {
+            extra = Math.max(extra, offset);
+        }
+
+        if (player.ticksSinceScaffolding >= 0 && player.ticksSinceScaffolding < 3 && actualYSmallerOrEqual) {
             extra = Math.max(extra, offset);
         }
 
