@@ -61,6 +61,18 @@ public class LegacyAuthInputPackets {
             player.ticksSinceShulker++;
         }
 
+        boolean nearHoneyBlock = player.compensatedWorld.getBlockState(pos, 0).getState().is(Blocks.HONEY_BLOCK)
+                || player.compensatedWorld.getBlockState(pos.add(1, 0, 0), 0).getState().is(Blocks.HONEY_BLOCK)
+                || player.compensatedWorld.getBlockState(pos.add(-1, 0, 0), 0).getState().is(Blocks.HONEY_BLOCK)
+                || player.compensatedWorld.getBlockState(pos.add(0, 0, 1), 0).getState().is(Blocks.HONEY_BLOCK)
+                || player.compensatedWorld.getBlockState(pos.add(0, 0, -1), 0).getState().is(Blocks.HONEY_BLOCK)
+                || player.compensatedWorld.getBlockState(pos.sub(0, 1, 0), 0).getState().is(Blocks.HONEY_BLOCK);
+        if (nearHoneyBlock) {
+            player.ticksSinceHoneyBlock = 0;
+        } else if (player.ticksSinceHoneyBlock < 100) {
+            player.ticksSinceHoneyBlock++;
+        }
+
         final UncertainRunner uncertainRunner = new UncertainRunner(player);
 
         // Properly calculated offset by comparing position instead of poorly calculated velocity that get calculated using (pos - prevPos) to account for floating point errors.

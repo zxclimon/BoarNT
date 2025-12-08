@@ -76,7 +76,7 @@ public class PlayerData {
     private final FlagTracker flagTracker = new FlagTracker();
 
     public int glideBoostTicks;
-    public int ticksSinceSwimming, ticksSinceCrawling, ticksSinceGliding, ticksSincePowderSnow = 100, ticksSinceScaffolding = 100, ticksSinceShulker = 100;
+    public int ticksSinceSwimming, ticksSinceCrawling, ticksSinceGliding, ticksSincePowderSnow = 100, ticksSinceScaffolding = 100, ticksSinceShulker = 100, ticksSinceHoneyBlock = 100;
     public int ticksSinceStoppedSwimming, ticksSinceStoppedGliding, ticksSinceItemUse, ticksSinceVelocity;
 
     public boolean doingInventoryAction;

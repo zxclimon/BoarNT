@@ -182,6 +182,11 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
+        //  скольжение по стенке блока мёда
+        if (player.ticksSinceHoneyBlock >= 0 && player.ticksSinceHoneyBlock < 10) {
+            extra = Math.max(extra, offset);
+        }
+
         return extra;
     }
 }
