@@ -153,9 +153,10 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
         // при использовании предмета игрок может едя на бегу, бег+прыжок вызывая погрешность в вычеслиниях
-        // проблема в том, что на тике когда игрок перестаёт использовать предмет
+        // проблема в том, что на тике когда игрок перестаёт использовать предмет или начинает
         boolean itemUseTransition = (player.ticksSinceItemUse >= 0 && player.ticksSinceItemUse < 10)
-                || (!player.getFlagTracker().has(EntityFlag.USING_ITEM) && player.getItemUseTracker().getJavaItemId() != -1);
+                || player.getFlagTracker().has(EntityFlag.USING_ITEM)
+                || player.getItemUseTracker().getJavaItemId() != -1;
 
         if (itemUseTransition) {
             extra = Math.max(extra, offset);
@@ -172,8 +173,13 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
-        // scaffolding  спуск/подъём
-        if (player.scaffoldDescend || (player.ticksSinceScaffolding >= 0 && player.ticksSinceScaffolding < 5)) {
+        // scaffolding спуск/подъём
+        float actualYDelta = player.unvalidatedPosition.y - player.prevUnvalidatedPosition.y;
+        boolean scaffoldingMovement = Math.abs(player.unvalidatedTickEnd.y - 0.15F) < 0.02F 
+                || Math.abs(player.unvalidatedTickEnd.y + 0.15F) < 0.02F
+                || Math.abs(actualYDelta - 0.15F) < 0.02F
+                || Math.abs(actualYDelta + 0.15F) < 0.02F;
+        if (player.scaffoldDescend || scaffoldingMovement || (player.ticksSinceScaffolding >= 0 && player.ticksSinceScaffolding < 10)) {
             extra = Math.max(extra, offset);
         }
 
