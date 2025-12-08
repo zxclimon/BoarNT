@@ -172,6 +172,11 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
+        // scaffolding  спуск/подъём
+        if (player.scaffoldDescend) {
+            extra = Math.max(extra, offset);
+        }
+
         return extra;
     }
 }
