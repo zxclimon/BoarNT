@@ -218,11 +218,22 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
+        // Я вообще в шоке 
+        boolean lookingDown = Math.abs(player.pitch) > 80;
+        if (lookingDown && actualSpeedSmallerThanPredicted && validYOffset && offset < 0.1F) {
+            extra = Math.max(extra, offset);
+        }
+
         if (player.nearLowBlock && validYOffset) {
             extra = Math.max(extra, offset);
         }
 
         if (player.nearThinBlock && validYOffset) {
+            extra = Math.max(extra, offset);
+        }
+
+        // Капельник 
+        if (player.nearDripstone && offset < 0.5F) {
             extra = Math.max(extra, offset);
         }
 
