@@ -141,16 +141,16 @@ public class UncertainRunner {
         if ((waterExit || waterEntry || swimmingUp) && validYOffset && actualSpeedSmallerThanPredicted) {
             extra = Math.max(extra, offset);
         }
-        
+
         if (isSwimming && player.touchingWater && offset < 0.2F) {
             extra = Math.max(extra, offset);
         }
-        
+
         boolean waterJump = player.touchingWater && actual.y > 0.2F && offset < 0.1F;
         if (waterJump) {
             extra = Math.max(extra, offset);
         }
-        
+
         boolean swimBoost = player.touchingWater && actual.y > 0.3F;
         if (swimBoost && offset < 2.0F) {
             extra = Math.max(extra, offset);
@@ -162,8 +162,11 @@ public class UncertainRunner {
         if ((recentWaterExit || recentSwimmingStop) && offset < 2.0F) {
             extra = Math.max(extra, offset);
         }
+        // https://youtube.com/shorts/VRXi7ytV290?si=-QsX8M-ojReYou9U
         boolean usingItem = player.getFlagTracker().has(EntityFlag.USING_ITEM);
-        if (usingItem && validYOffset && actualSpeedSmallerThanPredicted) {
+        boolean recentItemUseStop = player.ticksSinceItemUse >= 0 && player.ticksSinceItemUse < 10;
+        boolean recentItemUseStart = player.ticksSinceStartedItemUse < 10;
+        if ((usingItem || recentItemUseStop || recentItemUseStart) && validYOffset && sameDirection) {
             extra = Math.max(extra, offset);
         }
 
