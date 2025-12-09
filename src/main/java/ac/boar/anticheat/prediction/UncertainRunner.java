@@ -220,11 +220,7 @@ public class UncertainRunner {
         if (player.nearThinBlock && validYOffset) {
             extra = Math.max(extra, offset);
         }
-
-        if (player.horizontalCollision && player.velocity.y > 0) {
-            extra = Math.max(extra, offset);
-        }
-
+        
         //Фикс полёта элитр, фейрверков, скольжени
         boolean isGliding = player.getFlagTracker().has(EntityFlag.GLIDING);
         boolean recentGlidingStart = player.ticksSinceGliding > 0 && player.ticksSinceGliding < 5;
