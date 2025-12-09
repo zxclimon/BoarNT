@@ -3,6 +3,7 @@ package ac.boar.anticheat.collision;
 import ac.boar.anticheat.data.block.BoarBlockState;
 import ac.boar.anticheat.player.BoarPlayer;
 import ac.boar.anticheat.util.math.Box;
+import ac.boar.mappings.BlockMappings;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.geysermc.geyser.item.Items;
@@ -176,6 +177,10 @@ public class BedrockCollision {
             return BED_SHAPE;
         }
 
+        if (BlockMappings.getShulkerBlocks().contains(state.block())) {
+            player.nearShulker = true;
+        }
+
         if (state.is(Blocks.HONEY_BLOCK)) {
             return HONEY_SHAPE;
         }
@@ -302,11 +307,9 @@ public class BedrockCollision {
         boolean south = state.getValue(Properties.SOUTH);
         boolean west = state.getValue(Properties.WEST);
         boolean east = state.getValue(Properties.EAST);
-        if (!north && !south && !west && !east) {
-            north = south = west = east = true;
-        }
-
+        
         boxes.add(new Box(PANE_MIN, 0, PANE_MIN, PANE_MAX, 1, PANE_MAX));
+
         if (north) {
             boxes.add(new Box(PANE_MIN, 0, 0, PANE_MAX, 1, PANE_MIN));
         }
