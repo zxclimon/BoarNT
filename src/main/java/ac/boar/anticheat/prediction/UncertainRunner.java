@@ -138,28 +138,33 @@ public class UncertainRunner {
         boolean isSwimming = player.getFlagTracker().has(EntityFlag.SWIMMING);
 
         // переходы воды/воздух
-        if ((waterExit || waterEntry || swimmingUp) && validYOffset && actualSpeedSmallerThanPredicted) {
+        if ((waterExit || waterEntry || swimmingUp) && validYOffset && actualSpeedSmallerThanPredicted && sameDirection) {
+            extra = Math.max(extra, offset);
+        }
+        if ((isSwimming || player.touchingWater) && sameDirection && actualSpeedSmallerThanPredicted && offset < 0.2F) {
             extra = Math.max(extra, offset);
         }
 
-        if (isSwimming && player.touchingWater && offset < 0.2F) {
-            extra = Math.max(extra, offset);
-        }
-
-        boolean waterJump = player.touchingWater && actual.y > 0.2F && offset < 0.1F;
+        boolean waterJump = player.touchingWater && actual.y > 0.2F && sameDirection && offset < 0.15F;
         if (waterJump) {
             extra = Math.max(extra, offset);
         }
 
-        boolean swimBoost = player.touchingWater && actual.y > 0.3F;
+        boolean swimBoost = player.touchingWater && actual.y > 0.3F && sameDirection;
         if (swimBoost && offset < 2.0F) {
             extra = Math.max(extra, offset);
         }
 
         // Недавний выход из воды/плавания  небольшой tolerance для Y погрешностей
-        boolean recentWaterExit = player.ticksSinceWaterExit >= 0 && player.ticksSinceWaterExit < 5;
-        boolean recentSwimmingStop = player.ticksSinceStoppedSwimming > 0 && player.ticksSinceStoppedSwimming < 5;
-        if ((recentWaterExit || recentSwimmingStop) && offset < 2.0F) {
+        boolean recentWaterExit = player.ticksSinceWaterExit >= 0 && player.ticksSinceWaterExit < 10;
+        boolean recentSwimmingStop = player.ticksSinceStoppedSwimming > 0 && player.ticksSinceStoppedSwimming < 10;
+        boolean veryRecentWaterExit = player.ticksSinceWaterExit >= 0 && player.ticksSinceWaterExit < 3;
+        boolean sameDirectionOrCollision = sameDirection || 
+                ((actual.x == 0 || actual.z == 0) && actualSpeedSmallerThanPredicted);
+        if (veryRecentWaterExit && sameDirectionOrCollision && offset < 0.5F) {
+            extra = Math.max(extra, offset);
+        }
+        if ((recentWaterExit || recentSwimmingStop) && sameDirection && actualSpeedSmallerThanPredicted && offset < 0.3F) {
             extra = Math.max(extra, offset);
         }
         // https://youtube.com/shorts/VRXi7ytV290?si=-QsX8M-ojReYou9U
@@ -220,7 +225,7 @@ public class UncertainRunner {
         if (player.nearThinBlock && validYOffset) {
             extra = Math.max(extra, offset);
         }
-        
+
         //Фикс полёта элитр, фейрверков, скольжени
         boolean isGliding = player.getFlagTracker().has(EntityFlag.GLIDING);
         boolean recentGlidingStart = player.ticksSinceGliding > 0 && player.ticksSinceGliding < 5;
