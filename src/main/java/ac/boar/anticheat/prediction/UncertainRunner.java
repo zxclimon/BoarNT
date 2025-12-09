@@ -207,6 +207,24 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
+        //Фикс полёта элитр, фейрверков, скольжени
+        boolean isGliding = player.getFlagTracker().has(EntityFlag.GLIDING);
+        boolean recentGlidingStart = player.ticksSinceGliding > 0 && player.ticksSinceGliding < 5;
+        // ticksSinceStoppedGliding устанавливается в 1 когда скольжение прекращается затем увеличивается
+        boolean recentGlidingStop = player.ticksSinceStoppedGliding > 0 && player.ticksSinceStoppedGliding < 10;
+        if (isGliding && sameDirection && offset < 0.5F) {
+            extra = Math.max(extra, offset);
+        }
+        // Скольжение без усиление от фейра
+        if ((recentGlidingStart || recentGlidingStop) && offset < 1.0F) {
+            extra = Math.max(extra, offset);
+        }
+
+        // Усиление от фейрверка, при скольжение
+        if (player.glideBoostTicks > 0 && sameDirection && offset < 1.0F) {
+            extra = Math.max(extra, offset);
+        }
+
         return extra;
     }
 }
