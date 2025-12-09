@@ -144,6 +144,12 @@ public class BedrockCollision {
             return getIronBarsCollision(state);
         }
 
+        // Капельник
+        if (state.is(Blocks.POINTED_DRIPSTONE)) {
+            player.nearDripstone = true;
+            return getPointedDripstoneCollision(state);
+        }
+
         if (state.is(Blocks.POWDER_SNOW)) {
             boolean leatherBoostOn = player.compensatedInventory.translate(player.compensatedInventory.armorContainer.get(3).getData()).getId() == Items.LEATHER_BOOTS.javaId();
             if (leatherBoostOn && player.position.y > vector3i.getY() + 1 - 1.0E-5f && !(player.getInputData().contains(PlayerAuthInputData.SNEAKING)|| player.getInputData().contains(PlayerAuthInputData.DESCEND_BLOCK))) {
@@ -324,5 +330,49 @@ public class BedrockCollision {
         }
 
         return boxes;
+    }
+
+    // Фикс коллизии капельников
+    private static List<Box> getPointedDripstoneCollision(BlockState state) {
+        String thickness = state.getValue(Properties.DRIPSTONE_THICKNESS);
+        Direction direction = state.getValue(Properties.VERTICAL_DIRECTION);
+        boolean up = direction == Direction.UP;
+        float width;
+        float height;
+        
+        switch (thickness.toLowerCase(Locale.ROOT)) {
+            case "tip_merge" -> {
+                width = 0.1875F; // 3/16
+                height = 0.5F;
+            }
+            case "tip" -> {
+                width = 0.125F; // 2/16
+                height = 0.6875F; // 11/16
+            }
+            case "frustum" -> {
+                width = 0.25F; // 4/16
+                height = 0.5F;
+            }
+            case "middle" -> {
+                width = 0.1875F; // 3/16
+                height = 1.0F;
+            }
+            case "base" -> {
+                width = 0.5F; // 8/16
+                height = 1.0F;
+            }
+            default -> {
+                width = 0.25F;
+                height = 0.5F;
+            }
+        }
+        
+        float minX = 0.5F - width / 2;
+        float maxX = 0.5F + width / 2;
+        float minZ = 0.5F - width / 2;
+        float maxZ = 0.5F + width / 2;
+        float minY = up ? 0 : 1 - height;
+        float maxY = up ? height : 1;
+        return List.of(new Box(minX, minY, minZ, maxX, maxY, maxZ));
     }
 }
