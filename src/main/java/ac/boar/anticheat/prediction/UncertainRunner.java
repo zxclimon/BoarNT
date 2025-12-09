@@ -135,16 +135,31 @@ public class UncertainRunner {
         boolean waterExit = player.wasInWaterBeforePrediction && !player.touchingWater;
         boolean waterEntry = !player.wasInWaterBeforePrediction && player.touchingWater;
         boolean swimmingUp = player.touchingWater && player.pitch < 0;
+        boolean isSwimming = player.getFlagTracker().has(EntityFlag.SWIMMING);
 
         // переходы воды/воздух
         if ((waterExit || waterEntry || swimmingUp) && validYOffset && actualSpeedSmallerThanPredicted) {
+            extra = Math.max(extra, offset);
+        }
+        
+        if (isSwimming && player.touchingWater && offset < 0.2F) {
+            extra = Math.max(extra, offset);
+        }
+        
+        boolean waterJump = player.touchingWater && actual.y > 0.2F && offset < 0.1F;
+        if (waterJump) {
+            extra = Math.max(extra, offset);
+        }
+        
+        boolean swimBoost = player.touchingWater && actual.y > 0.3F;
+        if (swimBoost && offset < 2.0F) {
             extra = Math.max(extra, offset);
         }
 
         // Недавний выход из воды/плавания  небольшой tolerance для Y погрешностей
         boolean recentWaterExit = player.ticksSinceWaterExit >= 0 && player.ticksSinceWaterExit < 5;
         boolean recentSwimmingStop = player.ticksSinceStoppedSwimming > 0 && player.ticksSinceStoppedSwimming < 5;
-        if ((recentWaterExit || recentSwimmingStop) && validYOffset && actualSpeedSmallerThanPredicted) {
+        if ((recentWaterExit || recentSwimmingStop) && offset < 2.0F) {
             extra = Math.max(extra, offset);
         }
         boolean usingItem = player.getFlagTracker().has(EntityFlag.USING_ITEM);
