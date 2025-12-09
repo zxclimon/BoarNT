@@ -21,12 +21,12 @@ public class UncertainRunner {
 
     // For now this will only be use for pushing player out of block, mojang making my life harder by make it differ from JE ofc.
     /**
-        Note: for anticheat developers on other platform, this code if when the player have the flag PUSH_TOWARDS_CLOSEST_SPACE
-        if there isn't, the player can be instantly push out by bruteforce direction to push out then getting the direction with the smallest value
-        (<a href="https://github.com/GeyserMC/Geyser/blob/43467f7d19d5a86611c47b2d42b03357b319aac4/core/src/main/java/org/geysermc/geyser/translator/collision/BlockCollision.java#L77">...</a>)
-        I can't remember the max value to be pushed out, maybe around 0.8+? but yep. You can either do uncertainty or calculate it that way.
-        However, without the flag getting into crawling mode is annoying and who knows is mojang going to break it or not.
-    **/
+     Note: for anticheat developers on other platform, this code if when the player have the flag PUSH_TOWARDS_CLOSEST_SPACE
+     if there isn't, the player can be instantly push out by bruteforce direction to push out then getting the direction with the smallest value
+     (<a href="https://github.com/GeyserMC/Geyser/blob/43467f7d19d5a86611c47b2d42b03357b319aac4/core/src/main/java/org/geysermc/geyser/translator/collision/BlockCollision.java#L77">...</a>)
+     I can't remember the max value to be pushed out, maybe around 0.8+? but yep. You can either do uncertainty or calculate it that way.
+     However, without the flag getting into crawling mode is annoying and who knows is mojang going to break it or not.
+     **/
     public void uncertainPushTowardsTheClosetSpace() {
         // Close enough, no uncertainty here, we're sure.
         if (player.velocity.distanceTo(player.unvalidatedTickEnd) <= 1.0E-4) {
@@ -128,17 +128,6 @@ public class UncertainRunner {
         if (player.hasDepthStrider) {
             if (actualSpeedSmallerThanPredicted && validYOffset) {
                 extra = offset;
-            }
-        }
-
-        // Увы, детектит за обычный полёт на элитрах  буст от фейрверков + коллизия  при gliding
-        boolean startingGlide = player.getInputData().contains(PlayerAuthInputData.START_GLIDING);
-        boolean recentGliding = player.ticksSinceStoppedGliding > 0 && player.ticksSinceStoppedGliding < 10;
-        if (player.getFlagTracker().has(EntityFlag.GLIDING) || startingGlide || recentGliding) {
-            extra += 1.0E-4F;
-            if (player.glideBoostTicks > -10 || player.horizontalCollision || player.verticalCollision
-                    || player.ticksSinceGliding < 10 || startingGlide || recentGliding) {
-                extra = Math.max(extra, offset);
             }
         }
 // плавании  учитывает выход из воды, переходы в плавание из true в false
