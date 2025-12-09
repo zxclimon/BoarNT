@@ -218,7 +218,7 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
-        // Я вообще в шоке 
+        // Я вообще в шоке (Коммент с исправляем обход случайно нет то написал, а именно фикс ложного детекта)
         boolean lookingDown = Math.abs(player.pitch) > 80;
         if (lookingDown && actualSpeedSmallerThanPredicted && validYOffset && offset < 0.1F) {
             extra = Math.max(extra, offset);
@@ -232,7 +232,7 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
-        // Капельник 
+        // Капельник
         if (player.nearDripstone && offset < 0.5F) {
             extra = Math.max(extra, offset);
         }
