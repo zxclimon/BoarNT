@@ -21,7 +21,7 @@ public final class Config {
     private float acceptanceThreshold = 1.0E-4F;
     @JsonProperty("max-tolerance-compensated-reach")
     @JsonSetter(nulls = Nulls.SKIP)
-    private float toleranceReach = 3.005F;
+    private float toleranceReach = 3.1F;
     @JsonProperty("differ-till-alert")
     @JsonSetter(nulls = Nulls.SKIP)
     private float alertThreshold = 0.0F;
@@ -53,7 +53,7 @@ public final class Config {
     }
 
     public float toleranceReach() {
-        return Math.max(3.0001F, toleranceReach);
+        return Math.max(3.1F, toleranceReach);
     }
 
     public float alertThreshold() {
