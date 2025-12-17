@@ -31,8 +31,6 @@ public final class Timer extends PingBasedCheck {
             long distance = (time.ns() - (System.nanoTime() + this.balance)) - (AVERAGE_DISTANCE / 2);
             this.balance += distance;
             this.loseBalance = Math.max(0, this.loseBalance - distance);
-
-//            Boar.debug(getDisplayName() + " is behind, likely fake lagging, distance=" + distance, Boar.DebugMessage.INFO);
         }
     }
 
@@ -53,7 +51,7 @@ public final class Timer extends PingBasedCheck {
         if (this.balance > limit) {
             if (this.balance - this.loseBalance <= limit) {
                 this.loseBalance -= AVERAGE_DISTANCE;
-                Boar.debug(getDisplayName() + " failed timer check due to balance limiter, but won't flag since player could actually be lagging.", Boar.DebugMessage.INFO);
+                Boar.debug(getDisplayName() + " failed timer check due to balance limiter, but won't flag since player could actually be lagging.");
             } else {
                 this.fail("balance=" + this.balance + ", player is ahead!");
             }

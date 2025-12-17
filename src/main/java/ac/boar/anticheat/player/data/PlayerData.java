@@ -76,8 +76,8 @@ public class PlayerData {
     private final FlagTracker flagTracker = new FlagTracker();
 
     public int glideBoostTicks;
-    public int ticksSinceSwimming, ticksSinceCrawling, ticksSinceGliding, ticksSincePowderSnow = 100, ticksSinceScaffolding = 100, ticksSinceHoneyBlock = 100, ticksSinceSneakToggle = 100;
-    public int ticksSinceStoppedSwimming, ticksSinceStoppedGliding, ticksSinceItemUse, ticksSinceStartedItemUse = 100, ticksSinceVelocity;
+    public int ticksSinceSwimming, ticksSinceCrawling, ticksSinceGliding = 100, ticksSincePowderSnow = 100, ticksSinceScaffolding = 100, ticksSinceHoneyBlock = 100, ticksSinceSneakToggle = 100;
+    public int ticksSinceStoppedSwimming, ticksSinceStoppedGliding = 100, ticksSinceItemUse, ticksSinceStartedItemUse = 100, ticksSinceVelocity = 100, ticksSinceTeleport = 100;
 
     public boolean doingInventoryAction;
     public AtomicLong desyncedFlag = new AtomicLong(-1);
@@ -158,7 +158,7 @@ public class PlayerData {
     public BlockState inBlockState;
     public boolean scaffoldDescend;
 
-    public VehicleData vehicleData = null;
+
 
     public int tickSinceBlockResync;
 
@@ -208,10 +208,6 @@ public class PlayerData {
         }
 
         this.position = vec3;
-        if (this.vehicleData != null) {
-            return;
-        }
-
         this.setBoundingBox(vec3);
 
         this.inBlockState = null;

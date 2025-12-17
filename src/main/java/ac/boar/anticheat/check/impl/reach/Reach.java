@@ -102,8 +102,8 @@ public final class Reach extends PacketCheck {
                 continue;
             }
 
-            Boar.debug("Step=" + entity.getCurrent().getInterpolator().getStep(), Boar.DebugMessage.INFO);
-            Boar.debug("Prev=" + entity.getCurrent().getPrevPos() + ", current=" + entity.getCurrent().getPos() + ", lerpingTo=" + entity.getCurrent().getInterpolator().getTargetPos(), Boar.DebugMessage.INFO);
+            Boar.debug("Step=" + entity.getCurrent().getInterpolator().getStep());
+            Boar.debug("Prev=" + entity.getCurrent().getPrevPos() + ", current=" + entity.getCurrent().getPos() + ", lerpingTo=" + entity.getCurrent().getInterpolator().getTargetPos());
 
             // There are some edge cases when entity position is interpolating.
             final float newReachDistance = ReachUtil.calculateReach(player, entry.getKey(), entry.getValue());
@@ -121,7 +121,7 @@ public final class Reach extends PacketCheck {
                 this.fail("entity out of range, distance=" + hitDistance);
             }
         } else {
-            Boar.debug("Valid hit distance=" + hitDistance, Boar.DebugMessage.INFO);
+            Boar.debug("Valid hit distance=" + hitDistance);
         }
 
         this.queuedHitAttacks.clear();

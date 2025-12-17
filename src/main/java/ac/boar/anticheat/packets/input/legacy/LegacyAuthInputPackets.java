@@ -49,18 +49,6 @@ public class LegacyAuthInputPackets {
             player.ticksSincePowderSnow++;
         }
 
-        Vector3i below = player.position.subtract(0, 1, 0).toVector3i();
-        boolean nearShulker = BlockMappings.getShulkerBlocks().contains(player.compensatedWorld.getBlockState(below, 0).getState().block())
-                || BlockMappings.getShulkerBlocks().contains(player.compensatedWorld.getBlockState(below.add(1, 0, 0), 0).getState().block())
-                || BlockMappings.getShulkerBlocks().contains(player.compensatedWorld.getBlockState(below.add(-1, 0, 0), 0).getState().block())
-                || BlockMappings.getShulkerBlocks().contains(player.compensatedWorld.getBlockState(below.add(0, 0, 1), 0).getState().block())
-                || BlockMappings.getShulkerBlocks().contains(player.compensatedWorld.getBlockState(below.add(0, 0, -1), 0).getState().block());
-        if (nearShulker) {
-            player.ticksSinceShulker = 0;
-        } else if (player.ticksSinceShulker < 100) {
-            player.ticksSinceShulker++;
-        }
-
         boolean nearHoneyBlock = player.compensatedWorld.getBlockState(pos, 0).getState().is(Blocks.HONEY_BLOCK)
                 || player.compensatedWorld.getBlockState(pos.add(1, 0, 0), 0).getState().is(Blocks.HONEY_BLOCK)
                 || player.compensatedWorld.getBlockState(pos.add(-1, 0, 0), 0).getState().is(Blocks.HONEY_BLOCK)
@@ -73,11 +61,14 @@ public class LegacyAuthInputPackets {
             player.ticksSinceHoneyBlock++;
         }
 
+        float offset;
+        float extraOffset = 0;
+
         final UncertainRunner uncertainRunner = new UncertainRunner(player);
 
         // Properly calculated offset by comparing position instead of poorly calculated velocity that get calculated using (pos - prevPos) to account for floating point errors.
-        float offset = player.position.distanceTo(player.unvalidatedPosition);
-        float extraOffset = uncertainRunner.extraOffset(offset);
+        offset = player.position.distanceTo(player.unvalidatedPosition);
+        extraOffset = uncertainRunner.extraOffset(offset);
         offset -= extraOffset;
         offset -= uncertainRunner.extraOffsetNonTickEnd(offset);
         uncertainRunner.uncertainPushTowardsTheClosetSpace();
@@ -116,6 +107,7 @@ public class LegacyAuthInputPackets {
             player.ticksSinceVelocity++;
         }
 
+        player.ticksSinceTeleport++;
         player.prevPosition = player.position;
     }
 
@@ -296,16 +288,21 @@ public class LegacyAuthInputPackets {
         }
         player.dirtySpinStop = false;
 
+        boolean wasGliding = player.ticksSinceGliding >= 0 && player.ticksSinceGliding < 100;
         if (player.getFlagTracker().has(EntityFlag.GLIDING)) {
-            player.ticksSinceGliding++;
-            player.ticksSinceStoppedGliding = 0;
-        } else {
-            if (player.ticksSinceGliding > 0) {
-                player.ticksSinceStoppedGliding = 1;
+            if (!wasGliding || player.ticksSinceGliding >= 100) {
+                player.ticksSinceGliding = 0;
             } else {
+                player.ticksSinceGliding++;
+            }
+            player.ticksSinceStoppedGliding = 100;
+        } else {
+            if (wasGliding && player.ticksSinceGliding > 0) {
+                player.ticksSinceStoppedGliding = 0;
+            } else if (player.ticksSinceStoppedGliding < 100) {
                 player.ticksSinceStoppedGliding++;
             }
-            player.ticksSinceGliding = 0;
+            player.ticksSinceGliding = 100;
         }
     }
 }

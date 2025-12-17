@@ -71,9 +71,10 @@ public class LivingTicker extends EntityTicker {
 
         this.applyInput();
 
-        // Prevent player from "elytra bouncing".
-        if (player.getFlagTracker().has(EntityFlag.GLIDING) && player.onGround && player.getInputData().contains(PlayerAuthInputData.START_JUMPING)) {
-            player.getTeleportUtil().rewind(player.tick - 1);
+        if (player.getFlagTracker().has(EntityFlag.GLIDING) && player.onGround) {
+            if (player.getInputData().contains(PlayerAuthInputData.START_JUMPING)) {
+                player.getTeleportUtil().rewind(player.tick - 1);
+            }
         }
 
         boolean inScaffolding = false, onScaffolding = false;
@@ -122,7 +123,7 @@ public class LivingTicker extends EntityTicker {
             player.ticksSinceScaffolding++;
         }
 
-        if (player.getFlagTracker().has(EntityFlag.GLIDING) && (player.onGround || player.vehicleData != null || player.hasEffect(Effect.LEVITATION))) {
+        if (player.getFlagTracker().has(EntityFlag.GLIDING) && (player.onGround || player.hasEffect(Effect.LEVITATION))) {
             player.getFlagTracker().set(EntityFlag.GLIDING, false);
         }
 
@@ -188,17 +189,21 @@ public class LivingTicker extends EntityTicker {
         if (player.isInLava() || player.touchingWater) {
             this.travelInFluid();
         } else if (player.getFlagTracker().has(EntityFlag.GLIDING)) {
-//            if (this.onClimbable()) {
-//                this.travelInAir(vec3);
-//                this.stopFallFlying();
-//                return;
-//            }
-
-            player.velocity = new GlidingPredictionEngine(player).travel(player.velocity);
-            this.doSelfMove(player.velocity.clone()); // this.move(MoverType.SELF, this.getDeltaMovement());
+            this.travelGliding();
         } else {
             travelInAir();
         }
+    }
+
+    private void travelGliding() {
+        if (player.onClimbable()) {
+            travelInAir();
+            player.getFlagTracker().set(EntityFlag.GLIDING, false);
+            return;
+        }
+
+        player.velocity = new GlidingPredictionEngine(player).travel(player.velocity);
+        this.doSelfMove(player.velocity.clone());
     }
 
     private void travelInAir() {

@@ -38,7 +38,7 @@ public class EntityTicker {
 
     private void updateSwimming() {
         if (player.getFlagTracker().has(EntityFlag.SWIMMING)) {
-            player.getFlagTracker().set(EntityFlag.SWIMMING, player.touchingWater && player.vehicleData == null);
+            player.getFlagTracker().set(EntityFlag.SWIMMING, player.touchingWater);
         }
     }
 
@@ -51,11 +51,15 @@ public class EntityTicker {
     void checkWaterState() {
         boolean wasInWater = player.touchingWater;
         player.touchingWater = this.updateFluidHeightAndDoFluidPushing(0.014F, Fluid.WATER);
+
         if (wasInWater && !player.touchingWater) {
             player.ticksSinceWaterExit = 0;
-        } else if (!player.touchingWater) {
+        } else if (!player.touchingWater && player.ticksSinceWaterExit >= 0) {
             player.ticksSinceWaterExit++;
-        } else {
+            if (player.ticksSinceWaterExit > 100) {
+                player.ticksSinceWaterExit = 100;
+            }
+        } else if (player.touchingWater) {
             player.ticksSinceWaterExit = -1;
         }
     }

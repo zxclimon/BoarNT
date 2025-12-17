@@ -79,11 +79,6 @@ public class AuthInputPackets extends TeleportHandler implements PacketListener 
 
         player.tick();
 
-        if (player.vehicleData != null) { // TODO: Vehicle prediction.
-            player.position = player.unvalidatedPosition;
-            return;
-        }
-
         if (player.getSession().getPlayerEntity().getBedPosition() != null) {
             return;
         }

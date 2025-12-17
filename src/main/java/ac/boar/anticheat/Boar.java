@@ -6,7 +6,6 @@ import ac.boar.anticheat.config.ConfigLoader;
 import ac.boar.anticheat.packets.input.AuthInputPackets;
 import ac.boar.anticheat.packets.input.PostAuthInputPackets;
 import ac.boar.anticheat.packets.other.PacketCheckRunner;
-import ac.boar.anticheat.packets.other.VehiclePackets;
 import ac.boar.anticheat.packets.player.*;
 import ac.boar.anticheat.packets.server.ServerChunkPackets;
 import ac.boar.anticheat.packets.server.ServerEntityPackets;
@@ -34,8 +33,6 @@ public class Boar {
 
     public void init(GeyserBoar instance) {
         config = ConfigLoader.load(instance, GeyserBoar.class, Config.class, Config.DEFAULT_CONFIG);
-        // System.out.println("Load config: " + config);
-
         BlockMappings.load();
 
         this.playerManager = new BoarPlayerManager();
@@ -48,7 +45,6 @@ public class Boar {
         PacketEvents.getApi().register(new PlayerEffectPackets());
         PacketEvents.getApi().register(new PlayerVelocityPackets());
         PacketEvents.getApi().register(new PlayerInventoryPackets());
-        PacketEvents.getApi().register(new VehiclePackets());
         PacketEvents.getApi().register(new PacketCheckRunner());
         PacketEvents.getApi().register(new AuthInputPackets());
         PacketEvents.getApi().register(new PostAuthInputPackets());
@@ -57,23 +53,15 @@ public class Boar {
     public void terminate(GeyserBoar instance) {
         PacketEvents.getApi().terminate();
         this.playerManager.clear();
+        this.alertManager.shutdown();
 
         ConfigLoader.save(instance, GeyserBoar.class, config);
     }
 
-    public static void debug(String message, DebugMessage type) {
+    public static void debug(String message) {
         if (!config.debugMode()) {
             return;
         }
-
-        switch (type) {
-            case INFO -> GeyserBoar.getLogger().info(message);
-            case WARNING -> GeyserBoar.getLogger().warning(message);
-            case SERVE -> GeyserBoar.getLogger().severe(message);
-        }
-    }
-
-    public enum DebugMessage {
-        INFO, WARNING, SERVE;
+        instance.alertManager.debug(message);
     }
 }

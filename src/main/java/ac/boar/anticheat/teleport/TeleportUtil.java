@@ -90,7 +90,7 @@ public class TeleportUtil {
         packet.setTick(tick);
         packet.setDelta(data.tickEnd().toVector3f());
         packet.setVehicleRotation(Vector2f.ZERO);
-        packet.setPredictionType(player.vehicleData != null ? PredictionType.VEHICLE : PredictionType.PLAYER);
+        packet.setPredictionType(PredictionType.PLAYER);
 
         player.sendLatencyStack();
         this.queuedTeleports.add(new TeleportCache.Rewind(player.sentStackId.get(), tick, new Vec3(packet.getPosition()), new Vec3(packet.getDelta()), onGround));

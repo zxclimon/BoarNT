@@ -73,7 +73,8 @@ public class TeleportHandler {
             } else {
                 player.velocity = Vec3.ZERO.clone();
             }
-            player.predictionResult = new PredictionData(Vec3.ZERO, Vec3.ZERO, Vec3.ZERO); // Yep!
+            player.predictionResult = new PredictionData(Vec3.ZERO, Vec3.ZERO, Vec3.ZERO);
+            player.ticksSinceTeleport = 0;
 
             // This value can be true but since Geyser always send false then it is always false.
             player.onGround = false;

@@ -9,6 +9,7 @@ import ac.boar.anticheat.prediction.engine.data.VectorType;
 import ac.boar.anticheat.util.MathUtil;
 import ac.boar.anticheat.util.math.Vec3;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,17 +23,19 @@ public class Prediction extends OffsetHandlerCheck {
 
         this.checks.put("Phase", new Check(player, "Phase", "", false));
         this.checks.put("Velocity", new Check(player, "Velocity", "", false));
-
         this.checks.put("Strafe", new Check(player, "Strafe", "", false));
         this.checks.put("Speed", new Check(player, "Speed", "", false));
         this.checks.put("Flight", new Check(player, "Flight", "", false));
-
         this.checks.put("Collisions", new Check(player, "Collisions", "", false));
     }
 
     @Override
     public void onPredictionComplete(float offset) {
-        if (player.tick < 10 || offset < player.getMaxOffset()) {
+        if (player.tick < 10) {
+            return;
+        }
+
+        if (offset < player.getMaxOffset()) {
             return;
         }
 
@@ -41,41 +44,107 @@ public class Prediction extends OffsetHandlerCheck {
             return;
         }
 
+        boolean isGliding = player.getFlagTracker().has(EntityFlag.GLIDING);
+        boolean recentGlidingChange = player.ticksSinceGliding < 15 || player.ticksSinceStoppedGliding < 15;
+        boolean hasGlideBoost = player.glideBoostTicks > 0;
+
+        if (isGliding || recentGlidingChange || hasGlideBoost) {
+            float yawDelta = Math.abs(player.yaw - player.prevYaw);
+            float pitchDelta = Math.abs(player.pitch - player.prevPitch);
+
+            if (yawDelta > 10.0F || pitchDelta > 10.0F) {
+                player.getTeleportUtil().rewind(player.tick);
+                return;
+            }
+
+            if (offset < 1.0F) {
+                player.getTeleportUtil().rewind(player.tick);
+                return;
+            }
+        }
+
+        boolean isSwimming = player.getFlagTracker().has(EntityFlag.SWIMMING);
+        boolean recentWaterChange = player.ticksSinceWaterExit >= 0 && player.ticksSinceWaterExit < 10;
+        boolean recentSwimmingChange = player.ticksSinceStoppedSwimming > 0 && player.ticksSinceStoppedSwimming < 10;
+
+        if (isSwimming || player.touchingWater || recentWaterChange || recentSwimmingChange) {
+            if (offset < 0.5F) {
+                player.getTeleportUtil().rewind(player.tick);
+                return;
+            }
+        }
+
         player.getTeleportUtil().rewind(player.tick);
 
         boolean claimedHorizontal = player.getInputData().contains(PlayerAuthInputData.HORIZONTAL_COLLISION);
         boolean claimedVertical = player.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION);
-        if (claimedVertical != player.verticalCollision || claimedHorizontal != player.horizontalCollision) {
-            fail("Phase", "o: " + offset + ", expect: (" + player.horizontalCollision + "," + player.verticalCollision + "), actual: (" + claimedHorizontal + "," + claimedVertical + ")");
+
+        if (!isGliding && !recentGlidingChange) {
+            if (claimedVertical != player.verticalCollision || claimedHorizontal != player.horizontalCollision) {
+                fail("Phase", "o: " + offset + ", expect: (" + player.horizontalCollision + "," + player.verticalCollision + "), actual: (" + claimedHorizontal + "," + claimedVertical + ")");
+            }
         }
 
-        if (player.bestPossibility.getType() == VectorType.VELOCITY) {
-            fail("Velocity", "o: " + offset);
+        if (player.bestPossibility.getType() == VectorType.VELOCITY && offset > 0.1F) {
+            if (!isGliding && !hasGlideBoost) {
+                fail("Velocity", "o: " + offset);
+            }
             return;
         }
 
-        if (player.unvalidatedTickEnd.distanceTo(player.velocity) < player.getMaxOffset()) {
-            fail("Collisions", "o: " + offset);
+        float eotDiff = player.unvalidatedTickEnd.distanceTo(player.velocity);
+        if (eotDiff < player.getMaxOffset() && offset > 5.0E-4F) {
+            if (!isGliding && !recentGlidingChange) {
+                fail("Collisions", "o: " + offset);
+            }
         }
 
         Vec3 actual = player.unvalidatedPosition.subtract(player.prevUnvalidatedPosition);
         Vec3 predicted = player.position.subtract(player.prevUnvalidatedPosition);
-        if (!MathUtil.sameDirectionHorizontal(actual, predicted)) {
-            fail("Strafe", "o: " + offset + ", expected direction: " + MathUtil.signAll(predicted).horizontalToString() + ", actual direction: " + MathUtil.signAll(actual).horizontalToString());
+
+        if (!isGliding && !recentGlidingChange && !isSwimming && !recentWaterChange) {
+            if (!MathUtil.sameDirectionHorizontal(actual, predicted)) {
+                fail("Strafe", "o: " + offset + ", expected direction: " + MathUtil.signAll(predicted).horizontalToString() + ", actual direction: " + MathUtil.signAll(actual).horizontalToString());
+            }
         }
 
         float squaredActual = actual.horizontalLengthSquared(), squaredPredicted = predicted.horizontalLengthSquared();
-        if (actual.horizontalLengthSquared() > predicted.horizontalLengthSquared()) {
+        float speedDiff = squaredActual - squaredPredicted;
+
+        float speedThreshold = 1.0E-4F;
+        if (isGliding || recentGlidingChange || hasGlideBoost) {
+            speedThreshold = 0.5F;
+        } else if (isSwimming || player.touchingWater || recentWaterChange) {
+            speedThreshold = 0.1F;
+        }
+
+        if (speedDiff > speedThreshold) {
             fail("Speed", "o: " + offset + ", expected: " + squaredPredicted + ", actual: " + squaredActual);
         }
 
-        if (Math.abs(player.position.y - player.unvalidatedPosition.y) > player.getMaxOffset()) {
+        float yThreshold = player.getMaxOffset();
+        if (isGliding || recentGlidingChange || hasGlideBoost) {
+            yThreshold = 0.5F;
+        } else if (isSwimming || player.touchingWater || recentWaterChange) {
+            yThreshold = 0.3F;
+        }
+
+        if (Math.abs(player.position.y - player.unvalidatedPosition.y) > yThreshold) {
             fail("Flight", "o: " + offset);
         }
     }
 
     public boolean shouldDoFail() {
-        return player.tickSinceBlockResync <= 0 && !player.insideUnloadedChunk && !player.getTeleportUtil().isTeleporting() && player.sinceLoadingScreen > 5 && player.compensatedWorld.isChunkLoaded((int) player.position.x, (int) player.position.z);
+        if (player.tickSinceBlockResync > 0 || player.insideUnloadedChunk || player.getTeleportUtil().isTeleporting() || player.sinceLoadingScreen <= 5) {
+            return false;
+        }
+        if (!player.compensatedWorld.isChunkLoaded((int) player.position.x, (int) player.position.z)) {
+            return false;
+        }
+        if (player.ticksSinceTeleport < 5) {
+            return false;
+        }
+        return true;
     }
 
     public void fail(String name, String verbose) {

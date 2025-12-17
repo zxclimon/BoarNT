@@ -21,13 +21,10 @@ public class PostAuthInputPackets implements PacketListener {
             player.nearBamboo = false;
             player.nearLowBlock = false;
             player.nearThinBlock = false;
+            player.nearDripstone = false;
             player.nearShulker = false;
 
             player.getTeleportUtil().getAuthInputHistory().put(packet.getTick(), new TickData(packet, player.getFlagTracker().cloneFlags(), player.dimensions));
-
-            if (player.vehicleData != null && player.getSession().getPlayerEntity().getVehicle() == null) {
-                event.setCancelled(true);
-            }
 
             if (player.getTeleportUtil().isTeleporting()) {
                 packet.setPosition(player.position.add(0, player.getYOffset(), 0).toVector3f());

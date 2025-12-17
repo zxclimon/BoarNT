@@ -61,10 +61,6 @@ public class ServerDataPackets implements PacketListener {
                 return;
             }
 
-            if (player.vehicleData != null) {
-                return;
-            }
-
             Float height = packet.getMetadata().get(EntityDataTypes.HEIGHT);
             Float width = packet.getMetadata().get(EntityDataTypes.WIDTH);
             Float scale = packet.getMetadata().get(EntityDataTypes.SCALE);
@@ -135,10 +131,6 @@ public class ServerDataPackets implements PacketListener {
 
             player.sendLatencyStack(immediate);
             player.getLatencyUtil().addTaskToQueue(player.sentStackId.get(), () -> {
-                if (player.vehicleData != null) {
-                    return;
-                }
-
                 for (final AttributeData data : packet.getAttributes()) {
                     final AttributeInstance attribute = player.attributes.get(data.getName());
                     if (attribute == null) {

@@ -14,46 +14,29 @@ import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import java.util.ArrayList;
 import java.util.List;
 
-// Things that I don't even bother account for...
 @RequiredArgsConstructor
 public class UncertainRunner {
     private final BoarPlayer player;
 
-    // For now this will only be use for pushing player out of block, mojang making my life harder by make it differ from JE ofc.
-    /**
-     Note: for anticheat developers on other platform, this code if when the player have the flag PUSH_TOWARDS_CLOSEST_SPACE
-     if there isn't, the player can be instantly push out by bruteforce direction to push out then getting the direction with the smallest value
-     (<a href="https://github.com/GeyserMC/Geyser/blob/43467f7d19d5a86611c47b2d42b03357b319aac4/core/src/main/java/org/geysermc/geyser/translator/collision/BlockCollision.java#L77">...</a>)
-     I can't remember the max value to be pushed out, maybe around 0.8+? but yep. You can either do uncertainty or calculate it that way.
-     However, without the flag getting into crawling mode is annoying and who knows is mojang going to break it or not.
-     **/
     public void uncertainPushTowardsTheClosetSpace() {
-        // Close enough, no uncertainty here, we're sure.
         if (player.velocity.distanceTo(player.unvalidatedTickEnd) <= 1.0E-4) {
-            // TODO: Should we enforce this to prevent cheater from not being pushed out of block?
             return;
         }
 
-        // Now let's account for pushing out of block uncertainty.
-        // Since block push will only affect X and Z direction so this case no need to account for push, player velocity is wrong.
         if (Math.abs(player.unvalidatedTickEnd.y - player.velocity.y) > 1.0E-4) {
             return;
         }
-        // Assuming that we're missing the push out of block velocity, then subtracting velocity will do the job.
+
         Vec3 pushTowardsClosetSpaceVel = player.unvalidatedTickEnd.subtract(player.velocity);
 
-        // The push towards velocity should ALWAYS be normalized in a way that the squared length will always be smaller than 0.01 or at least equals (unless small floating point errors).
-        // So if the player push towards velocity is any larger than this... They're cheating.
         if (pushTowardsClosetSpaceVel.horizontalLengthSquared() > 0.01 + 1.0E-3F) {
             return;
         }
 
         player.nearBamboo = false;
 
-        // Let's check to see if the player is actually inside a block...
         final List<Box> collisions = player.compensatedWorld.collectColliders(new ArrayList<>(), player.boundingBox.expand(1.0E-3F));
         if (collisions.isEmpty() && !player.nearBamboo) {
-            // Nope, again the player is likely cheating, or we're falsing something else, also allow bamboo to bypass this.
             return;
         }
 
@@ -61,13 +44,6 @@ public class UncertainRunner {
         final int targetX = GenericMath.floor(player.position.x) + signX, targetZ = GenericMath.floor(player.position.z) + signZ;
         final Box box = new Box(targetX, player.boundingBox.minY, targetZ, targetX + 1, player.boundingBox.maxY, targetZ + 1).contract(1.0E-3F);
 
-        // The direction player is trying to move to is also not empty, so this is likely wrong.
-        // TODO: Not reliable.... Well let's rely on vanilla to prevent phase then...
-//        if (!player.compensatedWorld.noCollision(box)) {
-//            return;
-//        }
-
-        // TODO: Enforce this further.
         player.velocity = player.unvalidatedTickEnd.clone();
     }
 
@@ -90,9 +66,6 @@ public class UncertainRunner {
 
     public float extraOffset(float offset) {
         float extra = 0;
-        if (player.thisTickSpinAttack) {
-            extra += player.thisTickOnGroundSpinAttack ? 0.08F : 0.008F;
-        }
 
         Vec3 actual = player.unvalidatedPosition.subtract(player.prevUnvalidatedPosition);
         Vec3 predicted = player.position.subtract(player.prevUnvalidatedPosition);
@@ -100,6 +73,12 @@ public class UncertainRunner {
         boolean validYOffset = Math.abs(player.position.y - player.unvalidatedPosition.y) - extra <= player.getMaxOffset();
         boolean sameDirection = MathUtil.sameDirection(actual, predicted);
         boolean actualSpeedSmallerThanPredicted = actual.horizontalLengthSquared() < predicted.horizontalLengthSquared();
+        boolean sameDirectionOrZero = (MathUtil.sign(actual.x) == MathUtil.sign(predicted.x) || actual.x == 0)
+                && (MathUtil.sign(actual.z) == MathUtil.sign(predicted.z) || actual.z == 0);
+
+        if (player.thisTickSpinAttack) {
+            extra += player.thisTickOnGroundSpinAttack ? 0.08F : 0.008F;
+        }
 
         boolean haveSoulSpeed = CompensatedInventory.getEnchantments(player.compensatedInventory.armorContainer.get(3).getData()).containsKey(BedrockEnchantment.SOUL_SPEED);
         if (player.soulSandBelow && !haveSoulSpeed && validYOffset && actualSpeedSmallerThanPredicted && sameDirection) {
@@ -108,11 +87,9 @@ public class UncertainRunner {
 
         if (player.beingPushByLava && validYOffset) {
             extra += 0.004F;
-
             if (sameDirection) {
                 if (player.input.horizontalLengthSquared() > 0) {
                     Vec3 subtractedSpeed = actual.subtract(MathUtil.sign(player.afterCollision.x) * 0.02F, 0, MathUtil.sign(player.afterCollision.z) * 0.02F);
-
                     if (subtractedSpeed.horizontalLengthSquared() < predicted.horizontalLengthSquared()) {
                         extra = offset;
                     }
@@ -124,23 +101,64 @@ public class UncertainRunner {
             }
         }
 
-        // .... This is weird, no idea why.
         if (player.hasDepthStrider) {
             if (actualSpeedSmallerThanPredicted && validYOffset) {
                 extra = offset;
             }
         }
-// плавании  учитывает выход из воды, переходы в плавание из true в false
-// в этом случаях скорость по оси Y различается из-за  переходов между водой и воздухом
+
+        boolean isGliding = player.getFlagTracker().has(EntityFlag.GLIDING);
+        boolean recentGlidingStart = player.ticksSinceGliding < 15;
+        boolean recentGlidingStop = player.ticksSinceStoppedGliding < 20;
+
+        if (isGliding) {
+            float yawDelta = Math.abs(player.yaw - player.prevYaw);
+            float pitchDelta = Math.abs(player.pitch - player.prevPitch);
+            boolean rapidRotation = yawDelta > 15.0F || pitchDelta > 15.0F;
+
+            if (rapidRotation && offset < 2.0F) {
+                extra = Math.max(extra, offset);
+            }
+
+            if (sameDirection && offset < 1.0F) {
+                extra = Math.max(extra, offset);
+            }
+
+            if ((sameDirectionOrZero || actualSpeedSmallerThanPredicted) && offset < 0.8F) {
+                extra = Math.max(extra, offset);
+            }
+
+            if (validYOffset && offset < 0.5F) {
+                extra = Math.max(extra, offset);
+            }
+
+            boolean nearGround = player.position.y - GenericMath.floor(player.position.y) < 0.5F;
+            if (nearGround && offset < 0.3F) {
+                extra = Math.max(extra, offset);
+            }
+
+            if (player.glideBoostTicks > 0) {
+                extra = Math.max(extra, offset < 2.0F ? offset : 0);
+            }
+        }
+
+        if (recentGlidingStart && offset < 1.5F) {
+            extra = Math.max(extra, offset);
+        }
+
+        if (recentGlidingStop && offset < 1.5F) {
+            extra = Math.max(extra, offset);
+        }
+
         boolean waterExit = player.wasInWaterBeforePrediction && !player.touchingWater;
         boolean waterEntry = !player.wasInWaterBeforePrediction && player.touchingWater;
         boolean swimmingUp = player.touchingWater && player.pitch < 0;
         boolean isSwimming = player.getFlagTracker().has(EntityFlag.SWIMMING);
 
-        // переходы воды/воздух
         if ((waterExit || waterEntry || swimmingUp) && validYOffset && actualSpeedSmallerThanPredicted && sameDirection) {
             extra = Math.max(extra, offset);
         }
+
         if ((isSwimming || player.touchingWater) && sameDirection && actualSpeedSmallerThanPredicted && offset < 0.2F) {
             extra = Math.max(extra, offset);
         }
@@ -155,18 +173,19 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
-        // Недавний выход из воды/плавания  небольшой tolerance для Y погрешностей
         boolean recentWaterExit = player.ticksSinceWaterExit >= 0 && player.ticksSinceWaterExit < 10;
         boolean recentSwimmingStop = player.ticksSinceStoppedSwimming > 0 && player.ticksSinceStoppedSwimming < 10;
         boolean veryRecentWaterExit = player.ticksSinceWaterExit >= 0 && player.ticksSinceWaterExit < 3;
-        boolean sameDirectionOrCollision = sameDirection || 
-                ((actual.x == 0 || actual.z == 0) && actualSpeedSmallerThanPredicted);
+        boolean sameDirectionOrCollision = sameDirection || ((actual.x == 0 || actual.z == 0) && actualSpeedSmallerThanPredicted);
+
         if (veryRecentWaterExit && sameDirectionOrCollision && offset < 0.5F) {
             extra = Math.max(extra, offset);
         }
+
         if ((recentWaterExit || recentSwimmingStop) && sameDirection && actualSpeedSmallerThanPredicted && offset < 0.3F) {
             extra = Math.max(extra, offset);
         }
+
         // https://youtube.com/shorts/VRXi7ytV290?si=-QsX8M-ojReYou9U
         boolean usingItem = player.getFlagTracker().has(EntityFlag.USING_ITEM);
         boolean recentItemUseStop = player.ticksSinceItemUse >= 0 && player.ticksSinceItemUse < 10;
@@ -175,17 +194,14 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
-        // после получения velocity
         if (player.ticksSinceVelocity >= 0 && player.ticksSinceVelocity < 5) {
             extra = Math.max(extra, offset);
         }
 
-        // рыхлый снег когда игрок проваливается под него
-        // 10 тиков для того чтобы когда игрок проваливается одевая ботинки поднялся спокойно по рыхлому снегу
         if (player.ticksSincePowderSnow >= 0 && player.ticksSincePowderSnow < 10) {
             extra = Math.max(extra, offset);
         }
-        // scaffolding спуск/подъём
+
         float actualYDelta = player.unvalidatedPosition.y - player.prevUnvalidatedPosition.y;
         float predictedYDelta = player.position.y - player.prevUnvalidatedPosition.y;
         boolean actualYSmallerOrEqual = actualYDelta <= predictedYDelta + 0.01F;
@@ -203,17 +219,14 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
-        // shulker box  анимация открытие толкает игрока
         if (player.nearShulker && Math.abs(actualYDelta) <= 0.5F) {
             extra = Math.max(extra, offset);
         }
 
-        //  скольжение по стенке блока мёда
         if (player.ticksSinceHoneyBlock >= 0 && player.ticksSinceHoneyBlock < 10) {
             extra = Math.max(extra, offset);
         }
 
-        // быстрые присидание
         if (player.ticksSinceSneakToggle >= 0 && player.ticksSinceSneakToggle < 5) {
             extra = Math.max(extra, offset);
         }
@@ -232,26 +245,11 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
-        // Капельник
         if (player.nearDripstone && offset < 0.5F) {
             extra = Math.max(extra, offset);
         }
 
-        //Фикс полёта элитр, фейрверков, скольжени
-        boolean isGliding = player.getFlagTracker().has(EntityFlag.GLIDING);
-        boolean recentGlidingStart = player.ticksSinceGliding > 0 && player.ticksSinceGliding < 5;
-        // ticksSinceStoppedGliding устанавливается в 1 когда скольжение прекращается затем увеличивается
-        boolean recentGlidingStop = player.ticksSinceStoppedGliding > 0 && player.ticksSinceStoppedGliding < 10;
-        if (isGliding && sameDirection && offset < 0.5F) {
-            extra = Math.max(extra, offset);
-        }
-        // Скольжение без усиление от фейра
-        if ((recentGlidingStart || recentGlidingStop) && offset < 1.0F) {
-            extra = Math.max(extra, offset);
-        }
-
-        // Усиление от фейрверка, при скольжение
-        if (player.glideBoostTicks > 0 && sameDirection && offset < 1.0F) {
+        if (player.ticksSinceTeleport < 5) {
             extra = Math.max(extra, offset);
         }
 

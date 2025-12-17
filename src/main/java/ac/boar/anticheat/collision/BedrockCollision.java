@@ -313,7 +313,7 @@ public class BedrockCollision {
         boolean south = state.getValue(Properties.SOUTH);
         boolean west = state.getValue(Properties.WEST);
         boolean east = state.getValue(Properties.EAST);
-        
+
         boxes.add(new Box(PANE_MIN, 0, PANE_MIN, PANE_MAX, 1, PANE_MAX));
 
         if (north) {
