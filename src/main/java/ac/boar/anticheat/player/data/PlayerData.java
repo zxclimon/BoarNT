@@ -147,6 +147,8 @@ public class PlayerData {
     public boolean nearThinBlock;
     public boolean nearDripstone;
     public boolean nearShulker;
+    public boolean nearWall;
+    public int ticksSinceJump = 100;
 
     public boolean beingPushByLava;
 

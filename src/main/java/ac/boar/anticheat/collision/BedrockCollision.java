@@ -136,6 +136,7 @@ public class BedrockCollision {
         }
 
         if (state.is(Blocks.END_PORTAL_FRAME)) {
+            player.nearLowBlock = true;
             return END_PORTAL_FRAME_SHAPE;
         }
 
@@ -167,6 +168,7 @@ public class BedrockCollision {
         }
 
         if (state.is(Blocks.LANTERN) || state.is(Blocks.SOUL_LANTERN)) {
+            player.nearLowBlock = true;
             return LANTERN_SHAPE;
         }
 
@@ -192,6 +194,7 @@ public class BedrockCollision {
         }
 
         if (state.is(Blocks.LECTERN)) {
+            player.nearLowBlock = true;
             return LECTERN_SHAPE;
         }
 
@@ -200,6 +203,7 @@ public class BedrockCollision {
         }
 
         if (state.is(Blocks.CONDUIT)) {
+            player.nearLowBlock = true;
             return CONDUIT_SHAPE;
         }
 
@@ -247,6 +251,7 @@ public class BedrockCollision {
         }
 
         if (state.block() instanceof TrapDoorBlock) {
+            player.nearLowBlock = true;
             if (!state.getValue(Properties.OPEN)) {
                 return state.getValue(Properties.HALF).equalsIgnoreCase("top") ? TRAPDOOR_OPEN_TOP_SHAPE : TRAPDOOR_OPEN_BOTTOM_SHAPE;
             } else {

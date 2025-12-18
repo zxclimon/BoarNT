@@ -99,7 +99,13 @@ public class LivingTicker extends EntityTicker {
                 player.velocity.y = 0.15F;
             }
         } else {
+            Vec3 oldVel = player.velocity.clone();
             player.velocity = player.jump(player.velocity);
+            if (player.velocity.y > oldVel.y) {
+                player.ticksSinceJump = 0;
+            } else if (player.ticksSinceJump < 100) {
+                player.ticksSinceJump++;
+            }
         }
 
         boolean descending = player.getInputData().contains(PlayerAuthInputData.SNEAKING) || player.getInputData().contains(PlayerAuthInputData.DESCEND_BLOCK);

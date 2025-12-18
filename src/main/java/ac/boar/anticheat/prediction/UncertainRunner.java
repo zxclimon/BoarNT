@@ -194,7 +194,12 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
-        if (player.ticksSinceVelocity >= 0 && player.ticksSinceVelocity < 5) {
+        if (player.ticksSinceVelocity >= 0 && player.ticksSinceVelocity < 10) {
+            extra = Math.max(extra, offset);
+        }
+
+        boolean hasQueuedVelocity = !player.queuedVelocities.isEmpty();
+        if (hasQueuedVelocity && offset < 2.0F) {
             extra = Math.max(extra, offset);
         }
 
@@ -237,12 +242,16 @@ public class UncertainRunner {
             extra = Math.max(extra, offset);
         }
 
-        if (player.nearLowBlock && validYOffset) {
-            extra = Math.max(extra, offset);
+        if (player.nearLowBlock) {
+            if (offset < 2.0F) {
+                extra = Math.max(extra, offset);
+            }
         }
 
-        if (player.nearThinBlock && validYOffset) {
-            extra = Math.max(extra, offset);
+        if (player.nearThinBlock) {
+            if (offset < 1.5F) {
+                extra = Math.max(extra, offset);
+            }
         }
 
         if (player.nearDripstone && offset < 0.5F) {
@@ -250,6 +259,26 @@ public class UncertainRunner {
         }
 
         if (player.ticksSinceTeleport < 5) {
+            extra = Math.max(extra, offset);
+        }
+
+        boolean jumpingNearWall = player.ticksSinceJump < 5 && player.nearWall;
+        boolean recentJump = player.ticksSinceJump < 3;
+        if (jumpingNearWall && offset < 1.5F) {
+            extra = Math.max(extra, offset);
+        }
+
+        if (recentJump && player.horizontalCollision && offset < 0.5F) {
+            extra = Math.max(extra, offset);
+        }
+
+        boolean stepUpSituation = player.horizontalCollision && actual.y > 0 && actual.y < 0.7F;
+        if (stepUpSituation && sameDirectionOrZero && offset < 0.5F) {
+            extra = Math.max(extra, offset);
+        }
+
+        boolean cornerCollision = player.horizontalCollision && (actual.x == 0 || actual.z == 0) && predicted.horizontalLengthSquared() > 0;
+        if (cornerCollision && offset < 0.3F) {
             extra = Math.max(extra, offset);
         }
 

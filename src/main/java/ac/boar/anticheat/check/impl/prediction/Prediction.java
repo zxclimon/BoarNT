@@ -74,12 +74,34 @@ public class Prediction extends OffsetHandlerCheck {
             }
         }
 
+        boolean recentVelocity = player.ticksSinceVelocity >= 0 && player.ticksSinceVelocity < 10;
+        boolean hasQueuedVelocity = !player.queuedVelocities.isEmpty();
+
+        if (recentVelocity || hasQueuedVelocity) {
+            if (offset < 2.0F) {
+                player.getTeleportUtil().rewind(player.tick);
+                return;
+            }
+        }
+
+        boolean nearSmallHitbox = player.nearLowBlock || player.nearThinBlock || player.nearDripstone;
+
+        if (nearSmallHitbox) {
+            if (offset < 2.0F) {
+                player.getTeleportUtil().rewind(player.tick);
+                return;
+            }
+        }
+
         player.getTeleportUtil().rewind(player.tick);
 
         boolean claimedHorizontal = player.getInputData().contains(PlayerAuthInputData.HORIZONTAL_COLLISION);
         boolean claimedVertical = player.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION);
 
-        if (!isGliding && !recentGlidingChange) {
+        boolean jumpingNearWall = player.ticksSinceJump < 5 && player.nearWall;
+        boolean recentJump = player.ticksSinceJump < 3;
+
+        if (!isGliding && !recentGlidingChange && !jumpingNearWall && !recentJump && !recentVelocity && !hasQueuedVelocity && !nearSmallHitbox) {
             if (claimedVertical != player.verticalCollision || claimedHorizontal != player.horizontalCollision) {
                 fail("Phase", "o: " + offset + ", expect: (" + player.horizontalCollision + "," + player.verticalCollision + "), actual: (" + claimedHorizontal + "," + claimedVertical + ")");
             }
@@ -94,7 +116,7 @@ public class Prediction extends OffsetHandlerCheck {
 
         float eotDiff = player.unvalidatedTickEnd.distanceTo(player.velocity);
         if (eotDiff < player.getMaxOffset() && offset > 5.0E-4F) {
-            if (!isGliding && !recentGlidingChange) {
+            if (!isGliding && !recentGlidingChange && !recentVelocity && !hasQueuedVelocity && !nearSmallHitbox) {
                 fail("Collisions", "o: " + offset);
             }
         }
@@ -102,7 +124,9 @@ public class Prediction extends OffsetHandlerCheck {
         Vec3 actual = player.unvalidatedPosition.subtract(player.prevUnvalidatedPosition);
         Vec3 predicted = player.position.subtract(player.prevUnvalidatedPosition);
 
-        if (!isGliding && !recentGlidingChange && !isSwimming && !recentWaterChange) {
+        boolean cornerOrWallCollision = player.horizontalCollision && (actual.x == 0 || actual.z == 0);
+
+        if (!isGliding && !recentGlidingChange && !isSwimming && !recentWaterChange && !jumpingNearWall && !cornerOrWallCollision && !recentVelocity && !hasQueuedVelocity && !nearSmallHitbox) {
             if (!MathUtil.sameDirectionHorizontal(actual, predicted)) {
                 fail("Strafe", "o: " + offset + ", expected direction: " + MathUtil.signAll(predicted).horizontalToString() + ", actual direction: " + MathUtil.signAll(actual).horizontalToString());
             }
@@ -116,6 +140,12 @@ public class Prediction extends OffsetHandlerCheck {
             speedThreshold = 0.5F;
         } else if (isSwimming || player.touchingWater || recentWaterChange) {
             speedThreshold = 0.1F;
+        } else if (jumpingNearWall || cornerOrWallCollision) {
+            speedThreshold = 0.15F;
+        } else if (recentVelocity || hasQueuedVelocity) {
+            speedThreshold = 0.5F;
+        } else if (nearSmallHitbox) {
+            speedThreshold = 1.0F;
         }
 
         if (speedDiff > speedThreshold) {
@@ -127,6 +157,12 @@ public class Prediction extends OffsetHandlerCheck {
             yThreshold = 0.5F;
         } else if (isSwimming || player.touchingWater || recentWaterChange) {
             yThreshold = 0.3F;
+        } else if (jumpingNearWall || recentJump) {
+            yThreshold = 0.3F;
+        } else if (recentVelocity || hasQueuedVelocity) {
+            yThreshold = 1.5F;
+        } else if (nearSmallHitbox) {
+            yThreshold = 1.5F;
         }
 
         if (Math.abs(player.position.y - player.unvalidatedPosition.y) > yThreshold) {
