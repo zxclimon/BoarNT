@@ -108,6 +108,14 @@ public class LegacyAuthInputPackets {
         }
 
         player.ticksSinceTeleport++;
+
+        boolean headBonk = player.verticalCollision && !player.onGround;
+        if (headBonk) {
+            player.ticksSinceHeadBonk = 0;
+        } else if (player.ticksSinceHeadBonk < 100) {
+            player.ticksSinceHeadBonk++;
+        }
+
         player.prevPosition = player.position;
     }
 

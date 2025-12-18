@@ -51,19 +51,18 @@ public class TeleportHandler {
     }
 
     private void processDimensionSwitch(final BoarPlayer player, final TeleportCache.DimensionSwitch dimension, final PlayerAuthInputPacket packet) {
-        // Dimension switch should be followed with teleport so we don't have to do resync if the position mismatch.
-        if (packet.getPosition().distance(dimension.getPosition().toVector3f()) <= 1.0E-3F) {
-            player.setPos(new Vec3(packet.getPosition().sub(0, player.getYOffset(), 0)));
-            player.unvalidatedPosition = player.prevUnvalidatedPosition = player.position.clone();
+        player.setPos(new Vec3(packet.getPosition().sub(0, player.getYOffset(), 0)));
+        player.unvalidatedPosition = player.prevUnvalidatedPosition = player.position.clone();
 
-            player.velocity = Vec3.ZERO.clone();
-            player.predictionResult = new PredictionData(Vec3.ZERO, Vec3.ZERO, Vec3.ZERO);
-        }
+        player.velocity = Vec3.ZERO.clone();
+        player.predictionResult = new PredictionData(Vec3.ZERO, Vec3.ZERO, Vec3.ZERO);
+        player.ticksSinceTeleport = 0;
+        player.onGround = false;
+        player.insideUnloadedChunk = false;
     }
 
     private void processTeleport(final BoarPlayer player, final TeleportCache.Normal normal, final PlayerAuthInputPacket packet) {
         float distance = packet.getPosition().distance(normal.getPosition().toVector3f());
-        // I think I'm being a bit lenient but on Bedrock the position error seems to be a bit high.
         if (packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT) && distance <= 1.0E-3F) {
             player.setPos(new Vec3(packet.getPosition().sub(0, player.getYOffset(), 0)));
             player.unvalidatedPosition = player.prevUnvalidatedPosition = player.position.clone();
@@ -75,11 +74,10 @@ public class TeleportHandler {
             }
             player.predictionResult = new PredictionData(Vec3.ZERO, Vec3.ZERO, Vec3.ZERO);
             player.ticksSinceTeleport = 0;
+            player.insideUnloadedChunk = false;
 
-            // This value can be true but since Geyser always send false then it is always false.
             player.onGround = false;
         } else {
-            // Player rejected teleport OR this is not the latest teleport.
             if (!player.getTeleportUtil().isTeleporting()) {
                 player.getTeleportUtil().teleportTo(normal);
             }

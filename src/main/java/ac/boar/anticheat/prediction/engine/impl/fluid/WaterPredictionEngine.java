@@ -8,19 +8,22 @@ import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 
 import java.util.Map;
 
 public class WaterPredictionEngine extends PredictionEngine {
     private float tickEndSpeed;
+    private boolean isSwimming;
+
     public WaterPredictionEngine(BoarPlayer player) {
         super(player);
     }
 
     @Override
     public Vec3 travel(Vec3 vec3) {
+        this.isSwimming = player.getFlagTracker().has(EntityFlag.SWIMMING);
+
         ItemData boostSlot = player.compensatedInventory.armorContainer.get(3).getData();
         Map<BedrockEnchantment, Integer> enchantments = CompensatedInventory.getEnchantments(boostSlot);
         Integer depthStrider = enchantments.get(BedrockEnchantment.DEPTH_STRIDER);
@@ -30,29 +33,34 @@ public class WaterPredictionEngine extends PredictionEngine {
             h = 0.33333334f + 0.33333334f * (float)(depthStrider - 1);
         }
 
-        if (!player.onGround && player.getFlagTracker().has(EntityFlag.SWIMMING)) {
+        if (!player.onGround && this.isSwimming) {
             h *= 0.5F;
         }
 
         this.tickEndSpeed = h;
 
-        player.hasDepthStrider = this.tickEndSpeed > 0 && (!player.getFlagTracker().has(EntityFlag.SWIMMING) || depthStrider >= 4);
-        return this.moveRelative(vec3, h > 0 ? 0.02F + ((player.getSpeed() - 0.02F) * h) : 0.02F);
+        player.hasDepthStrider = this.tickEndSpeed > 0 && (!this.isSwimming || depthStrider >= 4);
+
+        float speed = h > 0 ? 0.02F + ((player.getSpeed() - 0.02F) * h) : 0.02F;
+
+        if (this.isSwimming) {
+            float lookY = (float) -Math.sin(Math.toRadians(player.pitch));
+            if (lookY > 0 && player.getInputData().contains(PlayerAuthInputData.JUMPING)) {
+                vec3 = vec3.add(0, 0.04F, 0);
+            }
+        }
+
+        return this.moveRelative(vec3, speed);
     }
 
     @Override
     public void finalizeMovement() {
-        if (!player.getFlagTracker().has(EntityFlag.SWIMMING) && !player.onGround) {
+        if (!this.isSwimming && !player.onGround) {
             this.tickEndSpeed *= 0.5F;
         }
 
         boolean sprinting = player.getFlagTracker().has(EntityFlag.SPRINTING);
-
-        // Yep, on bedrock the player can move fast in water just by sprinting, not swimming, and they can sprint in water yay!
-        // This was natively fixed in 1.21.80 but then the fix was removed in 1.21.81 (lol), so if you want to support
-        // any version below 1.21.90, and if the version is >= 1.21.80 and < 1.21.90 then you will have to bruteforce to
-        // see if player is actually water sprinting or not, since there is no actual way to tell.
-        boolean fastTickEnd = sprinting || player.getInputData().contains(PlayerAuthInputData.STOP_SWIMMING);
+        boolean fastTickEnd = sprinting || player.getInputData().contains(PlayerAuthInputData.STOP_SWIMMING) || this.isSwimming;
 
         float f = fastTickEnd ? 0.9F : 0.8F;
         f += (0.54600006f - f) * this.tickEndSpeed;
@@ -67,7 +75,7 @@ public class WaterPredictionEngine extends PredictionEngine {
             return new Vec3(motion.x, y, motion.z);
         }
 
-        if (gravity != 0.0 && !player.getFlagTracker().has(EntityFlag.SWIMMING)) {
+        if (gravity != 0.0 && !this.isSwimming) {
             return new Vec3(motion.x, motion.y - (gravity / 16.0F), motion.z);
         }
 

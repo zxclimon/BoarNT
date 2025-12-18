@@ -152,37 +152,28 @@ public class UncertainRunner {
 
         boolean waterExit = player.wasInWaterBeforePrediction && !player.touchingWater;
         boolean waterEntry = !player.wasInWaterBeforePrediction && player.touchingWater;
-        boolean swimmingUp = player.touchingWater && player.pitch < 0;
         boolean isSwimming = player.getFlagTracker().has(EntityFlag.SWIMMING);
 
-        if ((waterExit || waterEntry || swimmingUp) && validYOffset && actualSpeedSmallerThanPredicted && sameDirection) {
-            extra = Math.max(extra, offset);
+        if (player.touchingWater || isSwimming) {
+            if (offset < 0.5F) {
+                extra = Math.max(extra, offset);
+            }
+            if (sameDirection && offset < 1.0F) {
+                extra = Math.max(extra, offset);
+            }
+            if (sameDirectionOrZero && offset < 0.8F) {
+                extra = Math.max(extra, offset);
+            }
         }
 
-        if ((isSwimming || player.touchingWater) && sameDirection && actualSpeedSmallerThanPredicted && offset < 0.2F) {
-            extra = Math.max(extra, offset);
-        }
-
-        boolean waterJump = player.touchingWater && actual.y > 0.2F && sameDirection && offset < 0.15F;
-        if (waterJump) {
-            extra = Math.max(extra, offset);
-        }
-
-        boolean swimBoost = player.touchingWater && actual.y > 0.3F && sameDirection;
-        if (swimBoost && offset < 2.0F) {
+        if ((waterExit || waterEntry) && offset < 0.5F) {
             extra = Math.max(extra, offset);
         }
 
         boolean recentWaterExit = player.ticksSinceWaterExit >= 0 && player.ticksSinceWaterExit < 10;
         boolean recentSwimmingStop = player.ticksSinceStoppedSwimming > 0 && player.ticksSinceStoppedSwimming < 10;
-        boolean veryRecentWaterExit = player.ticksSinceWaterExit >= 0 && player.ticksSinceWaterExit < 3;
-        boolean sameDirectionOrCollision = sameDirection || ((actual.x == 0 || actual.z == 0) && actualSpeedSmallerThanPredicted);
 
-        if (veryRecentWaterExit && sameDirectionOrCollision && offset < 0.5F) {
-            extra = Math.max(extra, offset);
-        }
-
-        if ((recentWaterExit || recentSwimmingStop) && sameDirection && actualSpeedSmallerThanPredicted && offset < 0.3F) {
+        if ((recentWaterExit || recentSwimmingStop) && offset < 0.5F) {
             extra = Math.max(extra, offset);
         }
 
@@ -279,6 +270,16 @@ public class UncertainRunner {
 
         boolean cornerCollision = player.horizontalCollision && (actual.x == 0 || actual.z == 0) && predicted.horizontalLengthSquared() > 0;
         if (cornerCollision && offset < 0.3F) {
+            extra = Math.max(extra, offset);
+        }
+
+        boolean headBonk = player.verticalCollision && !player.onGround;
+        if (headBonk && offset < 0.1F) {
+            extra = Math.max(extra, offset);
+        }
+
+        boolean recentHeadBonk = player.ticksSinceHeadBonk >= 0 && player.ticksSinceHeadBonk < 5;
+        if (recentHeadBonk && offset < 0.05F) {
             extra = Math.max(extra, offset);
         }
 
