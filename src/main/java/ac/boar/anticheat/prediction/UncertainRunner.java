@@ -155,25 +155,25 @@ public class UncertainRunner {
         boolean isSwimming = player.getFlagTracker().has(EntityFlag.SWIMMING);
 
         if (player.touchingWater || isSwimming) {
-            if (offset < 0.5F) {
+            if (actualSpeedSmallerThanPredicted && sameDirection && offset < 0.3F) {
                 extra = Math.max(extra, offset);
             }
-            if (sameDirection && offset < 1.0F) {
+            if (actualSpeedSmallerThanPredicted && sameDirectionOrZero && offset < 0.2F) {
                 extra = Math.max(extra, offset);
             }
-            if (sameDirectionOrZero && offset < 0.8F) {
+            if (validYOffset && actualSpeedSmallerThanPredicted && offset < 0.15F) {
                 extra = Math.max(extra, offset);
             }
         }
 
-        if ((waterExit || waterEntry) && offset < 0.5F) {
+        if ((waterExit || waterEntry) && actualSpeedSmallerThanPredicted && sameDirection && offset < 0.3F) {
             extra = Math.max(extra, offset);
         }
 
         boolean recentWaterExit = player.ticksSinceWaterExit >= 0 && player.ticksSinceWaterExit < 10;
         boolean recentSwimmingStop = player.ticksSinceStoppedSwimming > 0 && player.ticksSinceStoppedSwimming < 10;
 
-        if ((recentWaterExit || recentSwimmingStop) && offset < 0.5F) {
+        if ((recentWaterExit || recentSwimmingStop) && actualSpeedSmallerThanPredicted && sameDirection && offset < 0.3F) {
             extra = Math.max(extra, offset);
         }
 
