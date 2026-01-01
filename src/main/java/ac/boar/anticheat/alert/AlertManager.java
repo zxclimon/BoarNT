@@ -1,6 +1,5 @@
 package ac.boar.anticheat.alert;
 
-import ac.boar.anticheat.logging.FileLogger;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -14,11 +13,9 @@ public final class AlertManager {
     private static final String BEDROCK_PREFIX = "§sBoar §i>§r ";
 
     private final Map<UUID, CommandSource> sources = new ConcurrentHashMap<>();
-    private final FileLogger fileLogger = new FileLogger();
 
     public void alert(String message) {
         sources.values().forEach(source -> source.sendMessage(getPrefix(source) + "§3" + message));
-        fileLogger.log(FileLogger.LogType.ALERT, message);
     }
 
     public void alertToPlayers(List<CommandSource> targets, String message) {
@@ -26,7 +23,6 @@ public final class AlertManager {
     }
 
     public void debug(String message) {
-        fileLogger.debug(message);
     }
 
     public String getPrefix(CommandSource source) {
@@ -50,7 +46,6 @@ public final class AlertManager {
     }
 
     public void shutdown() {
-        fileLogger.shutdown();
     }
 
     private UUID getSourceId(CommandSource source) {
