@@ -278,6 +278,7 @@ public class UncertainRunner {
 
     private float handleCollisions(float offset) {
         float extra = 0;
+        if (offset < 0.001F) extra = Math.max(extra, offset);
 
         boolean jumpingNearWall = player.ticksSinceJump < 5 && player.nearWall;
         boolean recentJump = player.ticksSinceJump < 3;
@@ -289,6 +290,7 @@ public class UncertainRunner {
         if (jumpingNearWall && offset < 1.5F) extra = Math.max(extra, offset);
         if (recentJump && player.horizontalCollision && offset < 0.5F) extra = Math.max(extra, offset);
         if (stepUp && sameDirectionOrZero && offset < 0.5F) extra = Math.max(extra, offset);
+        if (stepUp && offset < 0.001F) extra = Math.max(extra, offset);
         if (corner && offset < 0.3F) extra = Math.max(extra, offset);
         if (headBonk && offset < 0.1F) extra = Math.max(extra, offset);
         if (recentHeadBonk && offset < 0.05F) extra = Math.max(extra, offset);

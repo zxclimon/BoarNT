@@ -34,15 +34,9 @@ public class ServerChunkPackets implements PacketListener {
         final CompensatedWorld world = player.compensatedWorld;
 
         if (event.getPacket() instanceof NetworkChunkPublisherUpdatePacket packet) {
-            player.sendLatencyStack(immediate);
-
-            player.getLatencyUtil().addTaskToQueue(player.sentStackId.get(), () -> {
-                world.setCenterX(packet.getPosition().getX() >> 4);
-                world.setCenterZ(packet.getPosition().getZ() >> 4);
-                world.setRadius(packet.getRadius());
-
-                world.yeetOutOfRangeChunks();
-            });
+            world.setCenterX(packet.getPosition().getX() >> 4);
+            world.setCenterZ(packet.getPosition().getZ() >> 4);
+            world.setRadius(packet.getRadius());
         }
 
         // There are a ton of chunk sending and world type for Bedrock (why support that much anyway)
@@ -55,8 +49,7 @@ public class ServerChunkPackets implements PacketListener {
             }
 
             final int x = packet.getChunkX() << 4, z = packet.getChunkZ() << 4;
-            // Avoid spamming latency if possible, unless the player is seriously lagging then this shouldn't false.
-            if (Math.abs(player.position.x - x) <= 16 || Math.abs(player.position.z - z) <= 16) {
+            if (Math.abs(player.position.x - x) <= 32 || Math.abs(player.position.z - z) <= 32) {
                 player.sendLatencyStack(immediate);
             }
 

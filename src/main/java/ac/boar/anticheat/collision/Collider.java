@@ -89,7 +89,12 @@ public class Collider {
             }
 
             if (vec32.horizontalLengthSquared() > lv2.horizontalLengthSquared()) {
-                lv2 = vec32.add(collideBoundingBox(player, new Vec3(0, -vec32.y, 0), box.offset(vec32), collisions));
+                Vec3 stepDown = collideBoundingBox(player, new Vec3(0, -vec32.y, 0), box.offset(vec32), collisions);
+                lv2 = vec32.add(stepDown);
+                float snappedY = Math.round(lv2.y * 16F) / 16F;
+                if (Math.abs(lv2.y - snappedY) < 0.001F) {
+                    lv2 = new Vec3(lv2.x, snappedY, lv2.z);
+                }
             }
         }
 

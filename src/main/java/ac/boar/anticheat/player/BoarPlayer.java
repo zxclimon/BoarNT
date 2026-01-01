@@ -6,6 +6,7 @@ import ac.boar.anticheat.compensated.cache.entity.EntityCache;
 import ac.boar.anticheat.compensated.world.CompensatedWorldImpl;
 import ac.boar.anticheat.data.ItemUseTracker;
 import ac.boar.anticheat.data.vanilla.AttributeInstance;
+import ac.boar.anticheat.player.data.VehicleData;
 import ac.boar.anticheat.teleport.TeleportUtil;
 import ac.boar.anticheat.util.LatencyUtil;
 import ac.boar.anticheat.util.MathUtil;
@@ -63,6 +64,9 @@ public final class BoarPlayer extends PlayerData {
 
     @Getter
     private final TeleportUtil teleportUtil = new TeleportUtil(this);
+    
+    @Setter
+    public VehicleData vehicleData;
 
     @Getter
     private final CheckHolder checkHolder = new CheckHolder(this);

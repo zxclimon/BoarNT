@@ -120,6 +120,7 @@ public class AuthInputPackets extends TeleportHandler implements PacketListener 
 
         this.processQueuedTeleports(player, packet);
         LegacyAuthInputPackets.doPostPrediction(player, packet);
+        player.compensatedWorld.processPendingChunkCleanup();
     }
 
     @Override

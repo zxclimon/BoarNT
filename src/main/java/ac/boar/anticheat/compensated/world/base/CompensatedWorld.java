@@ -75,20 +75,31 @@ public class CompensatedWorld {
 
     private int radius;
     private int centerX, centerZ;
+    
+    private volatile boolean pendingChunkCleanup = false;
+    
+    public void markChunkCleanupNeeded() {
+        this.pendingChunkCleanup = true;
+    }
+    
+    public void processPendingChunkCleanup() {
+        if (!pendingChunkCleanup) {
+            return;
+        }
+        pendingChunkCleanup = false;
+        yeetOutOfRangeChunks();
+    }
 
     // (https://github.com/RaphiMC/ViaBedrock/blob/main/src/main/java/net/raphimc/viabedrock/protocol/storage/ChunkTracker.java#L263)
     public void yeetOutOfRangeChunks() {
-        final Set<Long> chunksToRemove = new HashSet<>();
-        for (long key : this.chunks.keySet()) {
+        final var iterator = this.chunks.long2ObjectEntrySet().iterator();
+        while (iterator.hasNext()) {
+            final var entry = iterator.next();
+            final long key = entry.getLongKey();
             final int chunkX = (int) key, chunkZ = (int) (key >> 32);
-            if (this.isInLoadDistance(chunkX, chunkZ)) {
-                continue;
+            if (!this.isInLoadDistance(chunkX, chunkZ)) {
+                iterator.remove();
             }
-
-            chunksToRemove.add(key);
-        }
-        for (long key : chunksToRemove) {
-            this.chunks.remove(key);
         }
     }
 
