@@ -298,8 +298,13 @@ public class UncertainRunner {
         }
 
         // Есть velocity в очереди которые ещё не применили
+        // Но только если направление движения совпадает с одной из velocity
         if (!player.queuedVelocities.isEmpty() && offset < 2.0F) {
-            extra = Math.max(extra, offset);
+            boolean anyVelocityMatches = player.queuedVelocities.values().stream()
+                    .anyMatch(v -> MathUtil.sameDirection(actual, v.velocity()));
+            if (anyVelocityMatches) {
+                extra = Math.max(extra, offset);
+            }
         }
 
         return extra;
@@ -365,7 +370,8 @@ public class UncertainRunner {
 
         // Step up игрок поднялся на блок
         // часто бывает на угловых ступеньках где collision отличается
-        boolean possibleStepUp = actual.y > 0 && actual.y <= 0.6F && predicted.y <= 0;
+        // НО только если есть horizontal collision (игрок упёрся в блок)
+        boolean possibleStepUp = actual.y > 0 && actual.y <= 0.6F && predicted.y <= 0 && player.horizontalCollision;
         if (possibleStepUp && offset < 0.6F) extra = Math.max(extra, offset);
 
         // Прыжок рядом со стеной траектория меняется
@@ -392,7 +398,7 @@ public class UncertainRunner {
     private float handleMiscellaneous(float offset) {
         float extra = 0;
         // Sneak toggle
-        if (player.ticksSinceSneakToggle >= 0 && player.ticksSinceSneakToggle < 5) {
+        if (player.ticksSinceSneakToggle >= 0 && player.ticksSinceSneakToggle < 5 && validYOffset) {
             extra = Math.max(extra, offset);
         }
         // Смотрим почти вертикально

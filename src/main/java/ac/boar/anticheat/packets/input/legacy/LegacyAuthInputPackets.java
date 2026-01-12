@@ -81,8 +81,11 @@ public class LegacyAuthInputPackets {
         }
 
         // Have to do this due to loss precision, especially elytra!
+        // Но не принимаем если клиент отправил нереальную скорость
         if (player.velocity.distanceTo(player.unvalidatedTickEnd) - extraOffset < player.getMaxOffset()) {
-            player.velocity = player.unvalidatedTickEnd.clone();
+            if (isVelocityPhysicallyPossible(player, player.unvalidatedTickEnd)) {
+                player.velocity = player.unvalidatedTickEnd.clone();
+            }
         }
         correctInputData(player, packet);
 
@@ -312,5 +315,33 @@ public class LegacyAuthInputPackets {
             }
             player.ticksSinceGliding = 100;
         }
+    }
+
+    private static boolean isVelocityPhysicallyPossible(BoarPlayer player, Vec3 velocity) {
+        float horizontalSpeed = velocity.horizontalLength();
+        if (player.getFlagTracker().has(EntityFlag.GLIDING) || player.ticksSinceGliding < 20) {
+            return true;
+        }
+        if (player.thisTickSpinAttack || player.autoSpinAttackTicks > 0) {
+            return true;
+        }
+
+        if (!player.queuedVelocities.isEmpty() || player.ticksSinceVelocity < 5) {
+            return true;
+        }
+
+        if (player.touchingWater) {
+            float maxWaterSpeed = player.hasDepthStrider ? 0.35F : 0.08F;
+            if (player.getFlagTracker().has(EntityFlag.SWIMMING)) {
+                maxWaterSpeed = 0.4F;
+            }
+            return horizontalSpeed <= maxWaterSpeed;
+        }
+
+        if (player.isInLava()) {
+            return horizontalSpeed <= 0.1F;
+        }
+        float maxGroundSpeed = player.getFlagTracker().has(EntityFlag.SPRINTING) ? 0.35F : 0.25F;
+        return horizontalSpeed <= maxGroundSpeed;
     }
 }

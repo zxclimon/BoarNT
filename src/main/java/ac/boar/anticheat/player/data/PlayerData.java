@@ -77,7 +77,7 @@ public class PlayerData {
 
     public int glideBoostTicks;
     public int ticksSinceSwimming, ticksSinceCrawling, ticksSinceGliding = 100, ticksSincePowderSnow = 100, ticksSinceScaffolding = 100, ticksSinceHoneyBlock = 100, ticksSinceSneakToggle = 100;
-    public int ticksSinceStoppedSwimming, ticksSinceStoppedGliding = 100, ticksSinceItemUse, ticksSinceStartedItemUse = 100, ticksSinceVelocity = 100, ticksSinceTeleport = 100;
+    public int ticksSinceStoppedSwimming = 100, ticksSinceStoppedGliding = 100, ticksSinceItemUse = 100, ticksSinceStartedItemUse = 100, ticksSinceVelocity = 100, ticksSinceTeleport = 100;
 
     public boolean doingInventoryAction;
     public AtomicLong desyncedFlag = new AtomicLong(-1);
@@ -138,7 +138,7 @@ public class PlayerData {
 
     public boolean hasDepthStrider;
     public boolean touchingWater, wasInWaterBeforePrediction;
-    public int ticksSinceWaterExit;
+    public int ticksSinceWaterExit = -1;
     public boolean horizontalCollision, verticalCollision;
     public boolean soulSandBelow;
 
